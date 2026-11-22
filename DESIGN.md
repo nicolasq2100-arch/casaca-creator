@@ -30,7 +30,7 @@ La camiseta 3D es la protagonista absoluta; la interfaz la rodea y nunca le comp
 - Selector de prenda arriba de la escena: Jugador · Arquero · Short · Medias · Kit completo
   (miniaturas de la prenda real, no íconos genéricos).
 - Escritorio: escena 3D ocupa ~65% a la izquierda; panel de herramientas a la derecha, en columnas
-  tipo planilla de utilero (secciones numeradas: 01 Plantilla, 02 Colores, 03 Líneas, 04 Capas, 05 Nombre y número).
+  tipo planilla de utilero (secciones numeradas: 01 Plantilla, 02 Colores, 03 Gráficos, 04 Capas, 05 Nombre y número).
 - **04 Capas** (imágenes y textos: escudo, ilustraciones, sponsors, frases, nombre del equipo): lista tipo
   planilla, una fila por capa, ordenada de arriba (más adelante) hacia abajo. Cada fila muestra miniatura,
   nombre, pieza donde va y tamaño en cm (tabular), con controles para reordenar, ocultar y borrar.
@@ -44,7 +44,7 @@ La camiseta 3D es la protagonista absoluta; la interfaz la rodea y nunca le comp
 - Las plantillas se muestran como camisetas colgadas en percha (miniaturas del render 3D, no íconos).
 - Microanimación al aplicar un color: la textura "se tiñe" desde el centro (200-300 ms), sin rebotes.
 - Estado vacío de "04 Capas" (todavía no hay ninguna capa): silueta punteada de un escudo con el texto
-  "Subí tu escudo o un gráfico (PNG o SVG)" como acción principal de la sección, y debajo, más chico,
+  "Subí tu escudo o un gráfico (PNG, JPG o SVG)" como acción principal de la sección, y debajo, más chico,
   "o agregá un texto". Tocar la silueta abre la subida de archivo.
 
 ## Accesibilidad

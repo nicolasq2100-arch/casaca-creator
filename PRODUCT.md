@@ -64,11 +64,16 @@ Confirmado:
 - **Sistema de capas**: imágenes subidas (ilustraciones grandes, escudos, sponsors, frases) y textos,
   cada una con pieza, posición en cm, tamaño, rotación y orden, sobre cualquier pieza de la prenda.
   Se pueden mover, escalar, rotar, reordenar, ocultar y borrar. En v1 cada capa queda recortada a su pieza
-  y no cruza costuras.
+  y no cruza costuras. Las capas de imagen tienen **"Quitar fondo"** (blanco o un color elegido, con
+  tolerancia), porque los equipos mandan JPG con fondo blanco.
+- **Arranque**: 12 gráficos originales (3 de ellos degradés) y plantillas originales propias; nada de clubes reales.
+- **Nombre y número**: se diseñan con un nombre y número de muestra; los tamaños por defecto se marcan
+  "a confirmar con la fábrica". La lista de jugadores se carga en el pedido.
+- **Borrador local**: el diseño se guarda solo en el dispositivo mientras no exista "Guardar diseño".
 - **El escudo es una capa más**: arranca en la posición sugerida de la prenda (camiseta de jugador:
   8 × 8 cm en el pecho izquierdo) y su tamaño es ajustable. Todas las medidas visibles están en cm.
 - **Número y textos con contorno configurable** (color y grosor en cm; sin borde si el grosor es 0).
-- Imágenes en dos versiones: el original tal cual se sube (PNG o SVG, máx. 10 MB), en el bucket privado
+- Imágenes en dos versiones: el original tal cual se sube (PNG, JPG o SVG, máx. 10 MB), en el bucket privado
   `layers-original` y usado solo para la ficha de fábrica, y una copia WebP de ~100 KB en el bucket
   `layers` para el 3D. Vale para todas las capas `image`, no solo el escudo.
 - **Cuellos**: v1 solo con el cuello en V del modelo. **El cuello polo tiene prioridad alta**: es el próximo

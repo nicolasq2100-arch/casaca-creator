@@ -42,3 +42,6 @@ next-env.d.ts
 
 # modelos comprados (licencia comercial, no se redistribuyen)
 /modelos-originales/
+
+# capturas de revisión de impeccable (material de trabajo)
+/.impeccable/review/

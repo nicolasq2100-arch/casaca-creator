@@ -61,7 +61,9 @@ Pensado para revenderse a otros equipos o fábricas: nada del cliente puede qued
 ## Capas (imágenes y textos)
 Todo lo que va encima de colores y patrón es una capa. El escudo es una capa más, no un caso especial.
 - **Tipos**:
-  - `image`: archivo subido por el usuario: ilustraciones grandes, escudos, sponsors, frases en imagen.
+  - `image`: archivo subido por el usuario (PNG, JPG o SVG): ilustraciones grandes, escudos, sponsors,
+    frases en imagen. Tiene la opción **"Quitar fondo"** (blanco o un color elegido, con tolerancia), porque
+    los equipos mandan JPG con fondo blanco. El original se guarda intacto; el fondo se quita al dibujar.
   - `text`: nombre, número, nombre del equipo, frases.
 - **Cada capa guarda**: pieza donde va, posición en cm (centro, medida desde la esquina superior izquierda
   de la pieza vista desde afuera), tamaño en cm (escala), rotación en grados y orden (z). Se puede mover,
@@ -112,7 +114,7 @@ la app, como cualquier usuario.
 - El GLB final debe pesar menos de 5 MB (Draco o meshopt). Si es más pesado, avisar antes de seguir.
 - Imágenes subidas (escudo, ilustraciones, sponsors, cualquier capa `image`): se guardan dos versiones
   de cada archivo.
-  - **Original**, tal cual lo suben (PNG o SVG, máx. 10 MB), en el bucket privado `layers-original`.
+  - **Original**, tal cual lo suben (PNG, JPG o SVG, máx. 10 MB), en el bucket privado `layers-original`.
     Se usa solo para la ficha de fábrica. Nunca se muestra en el 3D ni es público (acceso con URL firmada).
   - **Copia WebP** (~100 KB, máx. 1024 px), comprimida en el navegador, en el bucket `layers`.
     Es la que se muestra en el 3D.

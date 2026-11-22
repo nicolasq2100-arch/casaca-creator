@@ -1,5 +1,5 @@
-import JerseyLab from "@/components/JerseyLab";
+import { Editor } from "@/editor/Editor";
 
 export default function Home() {
-  return <JerseyLab />;
+  return <Editor />;
 }

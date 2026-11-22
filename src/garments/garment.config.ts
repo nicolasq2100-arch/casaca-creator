@@ -1,4 +1,4 @@
-// Datos de cada prenda: modelo, piezas del UV y medidas reales.
+// Datos de cada prenda: modelo, piezas del UV, zonas de color y medidas reales.
 // Sumar una prenda = sumar un GLB en /public/models + una entrada acá.
 
 export type PieceId =
@@ -26,10 +26,24 @@ export interface PieceSpec {
   uv: UvRect;
   /** Medida neta de la pieza (sin margen de costura), del molde DXF. */
   sizeCm: { w: number; h: number };
+  /** Altura (cm, desde el borde de abajo) en la que los costados son rectos; arriba empieza la sisa. */
+  straightSidesCm?: number;
 }
 
-/** Zona de ubicación medida desde la esquina superior izquierda de la pieza, vista desde afuera. */
-export interface PlacementZone {
+/** Zona de color: grupo de piezas que el usuario pinta juntas. */
+export interface ColorZone {
+  id: string;
+  label: string;
+  pieces: PieceId[];
+  /** Color con el que arranca un diseño nuevo. */
+  defaultHex: string;
+}
+
+/**
+ * Posición sugerida para una capa nueva, medida desde la esquina superior izquierda de la pieza,
+ * vista desde afuera. Es el punto de partida, no un límite.
+ */
+export interface Placement {
   id: "crest" | "number" | "text" | "logo";
   piece: PieceId;
   xCm: number;
@@ -37,7 +51,7 @@ export interface PlacementZone {
   /** Tamaño por defecto. */
   wCm: number;
   hCm: number;
-  /** Si el usuario puede cambiar el tamaño (la posición y el tamaño de acá son solo el punto de partida). */
+  /** Si el usuario puede cambiar el tamaño. */
   resizable: boolean;
 }
 
@@ -69,7 +83,9 @@ export interface GarmentConfig {
   /** Caja de la prenda en metros, para encuadrar la cámara. */
   boundsM: { w: number; h: number };
   pieces: Partial<Record<PieceId, PieceSpec>>;
-  zones: PlacementZone[];
+  /** Zonas de color en el orden en que se muestran. La primera es el color principal. */
+  colorZones: ColorZone[];
+  placements: Placement[];
 }
 
 // Camiseta de jugador. Fuente: export de CLO (talle M), molde DXF en mm.
@@ -96,8 +112,9 @@ export const jerseyPlayer: GarmentConfig = {
   },
   boundsM: { w: 0.578, h: 0.701 },
   pieces: {
-    front: { label: "Frente", uv: { u: 0.0295, v: 0.09499, w: 0.45116, h: 0.59357 }, sizeCm: { w: 52.06, h: 68.5 } },
-    back: { label: "Espalda", uv: { u: 0.51934, v: 0.09499, w: 0.45116, h: 0.59357 }, sizeCm: { w: 52.06, h: 68.5 } },
+    // Costados rectos: 44,7 cm desde el bajo hasta la sisa (DXF, pieza 41 y 44).
+    front: { label: "Frente", uv: { u: 0.0295, v: 0.09499, w: 0.45116, h: 0.59357 }, sizeCm: { w: 52.06, h: 68.5 }, straightSidesCm: 44 },
+    back: { label: "Espalda", uv: { u: 0.51934, v: 0.09499, w: 0.45116, h: 0.59357 }, sizeCm: { w: 52.06, h: 68.5 }, straightSidesCm: 44 },
     sleeve_l: { label: "Manga izq.", uv: { u: 0.57163, v: 0.77517, w: 0.34657, h: 0.15607 }, sizeCm: { w: 39.99, h: 18.01 } },
     sleeve_r: { label: "Manga der.", uv: { u: 0.04091, v: 0.76545, w: 0.34655, h: 0.15607 }, sizeCm: { w: 39.99, h: 18.01 } },
     cuff_l: { label: "Puño izq.", uv: { u: 0.58357, v: 0.94856, w: 0.32452, h: 0.02194 }, sizeCm: { w: 37.45, h: 2.53 } },
@@ -106,7 +123,14 @@ export const jerseyPlayer: GarmentConfig = {
     hem_back: { label: "Bajo espalda", uv: { u: 0.51934, v: 0.71687, w: 0.45116, h: 0.02167 }, sizeCm: { w: 52.06, h: 2.5 } },
     collar: { label: "Cuello", uv: { u: 0.28029, v: 0.05917, w: 0.45754, h: 0.02167 }, sizeCm: { w: 52.8, h: 2.5 } },
   },
-  zones: [
+  colorZones: [
+    { id: "body", label: "Cuerpo", pieces: ["front", "back"], defaultHex: "#F7F7F5" },
+    { id: "sleeves", label: "Mangas", pieces: ["sleeve_l", "sleeve_r"], defaultHex: "#F7F7F5" },
+    { id: "collar", label: "Cuello", pieces: ["collar"], defaultHex: "#14213D" },
+    { id: "cuffs", label: "Puños", pieces: ["cuff_l", "cuff_r"], defaultHex: "#14213D" },
+    { id: "hem", label: "Bajo", pieces: ["hem_front", "hem_back"], defaultHex: "#F7F7F5" },
+  ],
+  placements: [
     // Escudo: 8 × 8 cm por defecto, TAMAÑO AJUSTABLE por el usuario.
     // Centrado en el recuadro del molde (capa 8 del DXF, 3,8 × 3,8 cm, pecho izquierdo de quien la lleva:
     // esquina en x 33,41 / y 18,468 cm, centro en x 35,31 / y 20,37 cm). Ese recuadro de 3,8 cm es para
@@ -118,6 +142,25 @@ export const jerseyPlayer: GarmentConfig = {
 export const garments: Record<string, GarmentConfig> = {
   [jerseyPlayer.id]: jerseyPlayer,
 };
+
+/** Prendas del selector. Las que todavía no tienen modelo aparecen deshabilitadas. */
+export interface GarmentCatalogEntry {
+  id: string;
+  label: string;
+  status: "available" | "soon";
+  /** Miniatura del render real (solo prendas disponibles). */
+  thumbUrl?: string;
+  /** Silueta de referencia mientras la prenda no existe. */
+  silhouette: "jersey" | "goalkeeper" | "shorts" | "socks" | "kit";
+}
+
+export const garmentCatalog: GarmentCatalogEntry[] = [
+  { id: "jersey-player", label: "Jugador", status: "available", thumbUrl: "/thumbs/jersey-player.webp", silhouette: "jersey" },
+  { id: "jersey-goalkeeper", label: "Arquero", status: "soon", silhouette: "goalkeeper" },
+  { id: "shorts", label: "Short", status: "soon", silhouette: "shorts" },
+  { id: "socks", label: "Medias", status: "soon", silhouette: "socks" },
+  { id: "kit", label: "Kit completo", status: "soon", silhouette: "kit" },
+];
 
 /** Convierte una posición en cm dentro de una pieza a coordenadas UV. */
 export function pieceCmToUv(garment: GarmentConfig, piece: PieceId, xCm: number, yCm: number) {

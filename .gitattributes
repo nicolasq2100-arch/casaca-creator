@@ -1,0 +1,11 @@
+# Recursos 3D e imágenes: nunca convertir saltos de línea.
+*.glb binary
+*.gltf text eol=lf
+*.hdr binary
+*.exr binary
+*.ktx2 binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.ico binary

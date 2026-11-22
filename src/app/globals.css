@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Prueba técnica: todavía sin la dirección visual de DESIGN.md. */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #3b3a38;
+  font-family: system-ui, sans-serif;
+}

@@ -30,7 +30,12 @@ La camiseta 3D es la protagonista absoluta; la interfaz la rodea y nunca le comp
 - Selector de prenda arriba de la escena: Jugador · Arquero · Short · Medias · Kit completo
   (miniaturas de la prenda real, no íconos genéricos).
 - Escritorio: escena 3D ocupa ~65% a la izquierda; panel de herramientas a la derecha, en columnas
-  tipo planilla de utilero (secciones numeradas: 01 Plantilla, 02 Colores, 03 Líneas, 04 Escudo, 05 Nombre y número).
+  tipo planilla de utilero (secciones numeradas: 01 Plantilla, 02 Colores, 03 Líneas, 04 Capas, 05 Nombre y número).
+- **04 Capas** (imágenes y textos: escudo, ilustraciones, sponsors, frases, nombre del equipo): lista tipo
+  planilla, una fila por capa, ordenada de arriba (más adelante) hacia abajo. Cada fila muestra miniatura,
+  nombre, pieza donde va y tamaño en cm (tabular), con controles para reordenar, ocultar y borrar.
+  Arriba de la lista, dos acciones: "Subir imagen" y "Agregar texto". El escudo es una fila más.
+  El nombre y número de cada jugador siguen en "05 Nombre y número".
 - Celular: escena arriba (55% de alto), herramientas en una hoja inferior deslizable con pestañas.
 - Bordes rectos o casi rectos (2-4 px). Divisores finos tipo línea de cancha.
 
@@ -38,7 +43,9 @@ La camiseta 3D es la protagonista absoluta; la interfaz la rodea y nunca le comp
 - Guías métricas como líneas de cal punteadas con la medida en cm al costado.
 - Las plantillas se muestran como camisetas colgadas en percha (miniaturas del render 3D, no íconos).
 - Microanimación al aplicar un color: la textura "se tiñe" desde el centro (200-300 ms), sin rebotes.
-- Estado vacío del escudo: silueta punteada con el texto "Subí tu escudo (PNG o SVG)".
+- Estado vacío de "04 Capas" (todavía no hay ninguna capa): silueta punteada de un escudo con el texto
+  "Subí tu escudo o un gráfico (PNG o SVG)" como acción principal de la sección, y debajo, más chico,
+  "o agregá un texto". Tocar la silueta abre la subida de archivo.
 
 ## Accesibilidad
 - Contraste AA mínimo en todo texto de interfaz.

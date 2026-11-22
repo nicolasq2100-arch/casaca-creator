@@ -12,10 +12,19 @@ export interface JerseySceneProps {
   garment: GarmentConfig;
   mode: TestMode;
   color: string;
+  /** Color principal del diseño (tiñe la cara interior). */
+  mainColor: string;
   knitStrength: number;
 }
 
-const HDRI_URL = "/hdri/studio_small_09_1k.hdr";
+// Calibración de color: con tone mapping neutro (Khronos PBR Neutral) los colores medios no se alteran,
+// así que la luz del entorno se ajusta para que la tela iluminada de frente muestre el HEX elegido.
+// Medido con 7 colores (ΔE2000 promedio ≈ 1,9 en la tela de frente). Si cambia la luz, volver a medir.
+const ENV_INTENSITY = 1.34;
+const EXPOSURE = 1;
+
+// HDRI con balance de blancos neutro (el original tenía ~2 % de dominante roja que rosaba la tela).
+const HDRI_URL = "/hdri/studio_small_09_1k_neutral.hdr";
 // El GLB está en metros y centrado; el bajo queda en y ≈ -0,35.
 const FLOOR_Y = -0.355;
 const CAMERA_TARGET = new THREE.Vector3(0, 0.02, 0);
@@ -28,7 +37,7 @@ interface OrbitControlsImpl {
   update(): void;
 }
 
-function Jersey({ garment, mode, color, knitStrength }: JerseySceneProps) {
+function Jersey({ garment, mode, color, mainColor, knitStrength }: JerseySceneProps) {
   const { scene, materials } = useGLTF(garment.modelUrl, false, true);
   const knitTexture = useTexture(garment.knit.normalUrl);
   const gl = useThree((s) => s.gl);
@@ -62,15 +71,25 @@ function Jersey({ garment, mode, color, knitStrength }: JerseySceneProps) {
       fabric.specularIntensity = garment.fabric.specularIntensity;
       fabric.sheen = garment.fabric.sheen;
       fabric.sheenRoughness = garment.fabric.sheenRoughness;
+      // Sheen del color de la tela: un sheen blanco aclara todo y corre los rojos al salmón.
       fabric.sheenColor.set("#ffffff");
+      fabric.sheenColorMap = designTexture;
     }
     knitTexture.anisotropy = gl.capabilities.getMaxAnisotropy();
     detailRef.current = applyKnitDetail(fabric, knitTexture, garment.knit.repeatPerUv, strengthRef.current);
     return () => {
       fabric.map = null;
+      if (fabric instanceof THREE.MeshPhysicalMaterial) fabric.sheenColorMap = null;
       fabric.needsUpdate = true;
     };
   }, [materials, designTexture, knitTexture, gl, garment]);
+
+  // Cara interior: el color principal, un poco más oscuro.
+  useEffect(() => {
+    const inner = materials.inner;
+    if (!(inner instanceof THREE.MeshStandardMaterial)) return;
+    inner.color.set(mainColor).multiplyScalar(garment.fabric.innerShade);
+  }, [materials, mainColor, garment]);
 
   useEffect(() => {
     if (detailRef.current) setKnitStrength(detailRef.current, knitStrength);
@@ -132,14 +151,15 @@ export default function JerseyScene(props: JerseySceneProps) {
         camera={{ position: [0, 0.08, 1.75], fov: 32, near: 0.01, far: 20 }}
         gl={{ antialias: true }}
         onCreated={({ gl }) => {
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1;
+          // Neutral (Khronos PBR Neutral) en vez de ACES: ACES desatura y corre los colores de la tela.
+          gl.toneMapping = THREE.NeutralToneMapping;
+          gl.toneMappingExposure = EXPOSURE;
           gl.outputColorSpace = THREE.SRGBColorSpace;
         }}
       >
         <color attach="background" args={["#3b3a38"]} />
         <Suspense fallback={null}>
-          <Environment files={HDRI_URL} />
+          <Environment files={HDRI_URL} environmentIntensity={ENV_INTENSITY} />
           <Jersey {...props} />
           {/* La camiseta no se mueve: la sombra se calcula una sola vez. */}
           <ContactShadows position={[0, FLOOR_Y, 0]} scale={1.4} opacity={0.55} blur={2.4} far={0.8} resolution={512} frames={1} />
@@ -149,7 +169,7 @@ export default function JerseyScene(props: JerseySceneProps) {
           target={CAMERA_TARGET}
           enablePan={false}
           enableDamping
-          minDistance={0.42}
+          minDistance={0.36}
           maxDistance={MAX_DISTANCE}
           minPolarAngle={Math.PI * 0.25}
           maxPolarAngle={Math.PI * 0.56}

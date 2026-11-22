@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { jerseyPlayer } from "@/garments/garment.config";
-import type { TestMode } from "@/three/testTextures";
+import { mainColorFor, type TestMode } from "@/three/testTextures";
 
 // three.js solo corre en el navegador: la escena no se prerenderiza.
 const JerseyScene = dynamic(() => import("./JerseyScene"), {
@@ -20,14 +20,15 @@ const MODES: { id: TestMode; label: string }[] = [
 export default function JerseyLab() {
   const [mode, setMode] = useState<TestMode>("uv");
   const [color, setColor] = useState("#c8102e");
-  const [knitStrength, setKnitStrength] = useState(0.8);
   const garment = jerseyPlayer;
+  const [knitStrength, setKnitStrength] = useState(garment.fabric.knitStrength);
+  const mainColor = mainColorFor(mode, color);
 
   return (
     // Celular: panel arriba y escena debajo (sin superponerse). Escritorio: escena completa y panel flotante.
     <main className="fixed inset-0 flex flex-col bg-[#3b3a38] sm:block">
       <div className="min-h-0 flex-1 sm:absolute sm:inset-0">
-        <JerseyScene garment={garment} mode={mode} color={color} knitStrength={knitStrength} />
+        <JerseyScene garment={garment} mode={mode} color={color} mainColor={mainColor} knitStrength={knitStrength} />
       </div>
 
       <section
@@ -56,22 +57,29 @@ export default function JerseyLab() {
 
         <div className="flex items-center gap-3 sm:flex-col sm:items-stretch sm:gap-1">
           {mode === "solid" && (
-            <label className="flex min-h-11 shrink-0 items-center justify-between gap-2">
-              Color
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="h-9 w-14 cursor-pointer border-0 bg-transparent"
-              />
-            </label>
+            <div className="flex shrink-0 items-center gap-2">
+              <label className="flex min-h-11 items-center gap-2">
+                Color
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  className="h-9 w-12 cursor-pointer border-0 bg-transparent"
+                />
+              </label>
+              {/* Muestra plana del HEX exacto (sin luz ni tone mapping) para comparar con el 3D. */}
+              <div className="flex items-center gap-1.5" title="Muestra plana del HEX que va a la ficha">
+                <span data-testid="hex-swatch" className="h-9 w-9 rounded-sm" style={{ backgroundColor: color }} />
+                <span className="font-mono uppercase">{color}</span>
+              </div>
+            </div>
           )}
           <label className="flex min-w-0 flex-1 flex-col">
             <span>Trama de punto: {knitStrength.toFixed(2)}</span>
             <input
               type="range"
               min={0}
-              max={2}
+              max={4}
               step={0.05}
               value={knitStrength}
               onChange={(e) => setKnitStrength(Number(e.target.value))}

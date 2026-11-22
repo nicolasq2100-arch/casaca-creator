@@ -64,7 +64,11 @@ Pensado para revenderse a otros equipos o fábricas: nada del cliente puede qued
 - Respetar el normal map de costuras del modelo y sumarle encima el normal map de trama de punto
   (`fabric-knit-normal.jpg`, CC0, repetible) como textura de detalle: la malla tiene que verse al hacer zoom.
   Ver `modelos-optimizados/README.md` (escala del UV y repetición de la trama).
-- Tone mapping ACES y colorSpace sRGB correctos en la textura del diseño.
+- Fidelidad de color: el color iluminado de frente tiene que coincidir con el HEX que va a la ficha
+  (objetivo ΔE2000 ≤ 2 en colores medios). Tone mapping **Neutral** (Khronos PBR Neutral), no ACES:
+  ACES desatura y corre los rojos al salmón. colorSpace sRGB en la textura del diseño, HDRI con balance
+  de blancos neutro, intensidad del entorno calibrada (1,34) y sheen teñido con el color de la tela.
+  Si se cambia la luz, el HDRI o el material, volver a medir.
 - OrbitControls con límites de zoom y ángulo para que nunca se vea la camiseta "por dentro".
 
 ## Rendimiento

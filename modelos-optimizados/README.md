@@ -23,5 +23,6 @@ se recortó la última fila, que empalma con la primera como cualquier par de fi
 
 - Fuente: Poly Haven, "Cotton Jersey" (`cotton_jersey_nor_gl_1k.jpg`), https://polyhaven.com/a/cotton_jersey
 - Licencia: CC0 (dominio público). Fotografía: colormass; procesado: Rico Cilliers.
-- Tamaño real de una repetición: 26,4 × 26,4 cm → en el UV de la camiseta se repite **4,38 veces por unidad UV**.
+- Tamaño real de una repetición: 26,4 × 26,4 cm (4,38 veces por unidad UV). En la app se usa **2,92 por unidad UV**
+  (1,5× más gruesa, intensidad 2,4): a escala real la malla no se notaba de cerca. Ver `garment.config.ts`.
 - Se usa como textura de detalle sobre el normal map de costuras (no reemplaza al del GLB).

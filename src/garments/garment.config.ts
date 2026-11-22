@@ -34,8 +34,11 @@ export interface PlacementZone {
   piece: PieceId;
   xCm: number;
   yCm: number;
+  /** Tamaño por defecto. */
   wCm: number;
   hCm: number;
+  /** Si el usuario puede cambiar el tamaño (la posición y el tamaño de acá son solo el punto de partida). */
+  resizable: boolean;
 }
 
 export interface GarmentConfig {
@@ -55,9 +58,13 @@ export interface GarmentConfig {
   fabric: {
     roughness: number;
     specularIntensity: number;
-    /** Brillo rasante típico de la tela (MeshPhysicalMaterial.sheen). */
+    /** Brillo rasante típico de la tela (MeshPhysicalMaterial.sheen), teñido con el color del diseño. */
     sheen: number;
     sheenRoughness: number;
+    /** Intensidad del normal map de trama (0 = sin trama). */
+    knitStrength: number;
+    /** Cara interior: color principal del diseño multiplicado por este factor (en espacio lineal). */
+    innerShade: number;
   };
   /** Caja de la prenda en metros, para encuadrar la cámara. */
   boundsM: { w: number; h: number };
@@ -75,9 +82,18 @@ export const jerseyPlayer: GarmentConfig = {
   cmPerUv: 115.4,
   knit: {
     normalUrl: "/models/fabric-knit-normal.jpg",
-    repeatPerUv: 4.38, // muestra de 26,4 cm (Poly Haven "Cotton Jersey")
+    // La muestra real mide 26,4 cm (4,38 por unidad UV), pero esa malla de algodón es más fina que una
+    // deportiva y de cerca no se notaba: se usa 1,5× más gruesa (repetición de 39,5 cm).
+    repeatPerUv: 2.92,
   },
-  fabric: { roughness: 0.68, specularIntensity: 0.45, sheen: 0.35, sheenRoughness: 0.7 },
+  fabric: {
+    roughness: 0.68,
+    specularIntensity: 0.45,
+    sheen: 0.35,
+    sheenRoughness: 0.7,
+    knitStrength: 2.4,
+    innerShade: 0.55,
+  },
   boundsM: { w: 0.578, h: 0.701 },
   pieces: {
     front: { label: "Frente", uv: { u: 0.0295, v: 0.09499, w: 0.45116, h: 0.59357 }, sizeCm: { w: 52.06, h: 68.5 } },
@@ -91,8 +107,11 @@ export const jerseyPlayer: GarmentConfig = {
     collar: { label: "Cuello", uv: { u: 0.28029, v: 0.05917, w: 0.45754, h: 0.02167 }, sizeCm: { w: 52.8, h: 2.5 } },
   },
   zones: [
-    // Recuadro del molde (capa 8 del DXF): pecho izquierdo de quien la lleva.
-    { id: "crest", piece: "front", xCm: 33.41, yCm: 18.468, wCm: 3.807, hCm: 3.807 },
+    // Escudo: 8 × 8 cm por defecto, TAMAÑO AJUSTABLE por el usuario.
+    // Centrado en el recuadro del molde (capa 8 del DXF, 3,8 × 3,8 cm, pecho izquierdo de quien la lleva:
+    // esquina en x 33,41 / y 18,468 cm, centro en x 35,31 / y 20,37 cm). Ese recuadro de 3,8 cm es para
+    // el logo de marca; la ubicación definitiva del logo todavía no está decidida.
+    { id: "crest", piece: "front", xCm: 31.31, yCm: 16.37, wCm: 8, hCm: 8, resizable: true },
   ],
 };
 

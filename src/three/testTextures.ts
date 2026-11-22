@@ -6,6 +6,15 @@ import type { GarmentConfig, PieceSpec } from "@/garments/garment.config";
 export const TEXTURE_SIZE = 2048;
 export type TestMode = "solid" | "uv" | "cm";
 
+const UV_DARK = "#2f4b7c";
+const CM_PAPER = "#f4f1ea";
+
+/** Color principal del diseño (el que toma la cara interior). En "solid" es el color elegido. */
+export function mainColorFor(mode: TestMode, color: string): string {
+  if (mode === "solid") return color;
+  return mode === "uv" ? UV_DARK : CM_PAPER;
+}
+
 export function drawTestTexture(
   ctx: CanvasRenderingContext2D,
   mode: TestMode,
@@ -40,9 +49,9 @@ function drawUvGrid(ctx: CanvasRenderingContext2D, size: number) {
       const x = col * cell;
       const y = row * cell;
       const dark = (row + col) % 2 === 1;
-      ctx.fillStyle = dark ? "#2f4b7c" : "#f1efe9";
+      ctx.fillStyle = dark ? UV_DARK : "#f1efe9";
       ctx.fillRect(x, y, cell, cell);
-      ctx.strokeStyle = dark ? "#f1efe9" : "#2f4b7c";
+      ctx.strokeStyle = dark ? "#f1efe9" : UV_DARK;
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(x + cell / 2, y + cell / 2, cell * 0.38, 0, Math.PI * 2);
@@ -83,7 +92,7 @@ function drawCmGrid(ctx: CanvasRenderingContext2D, size: number, garment: Garmen
     ctx.beginPath();
     ctx.rect(x0, y0, w, h);
     ctx.clip();
-    ctx.fillStyle = "#f4f1ea";
+    ctx.fillStyle = CM_PAPER;
     ctx.fillRect(x0, y0, w, h);
 
     for (let cm = 0; cm <= spec.sizeCm.w + 0.01; cm += 5) {
@@ -147,7 +156,12 @@ function drawCmGrid(ctx: CanvasRenderingContext2D, size: number, garment: Garmen
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     // El texto arranca en la línea central para no salirse de la pieza.
-    ctx.fillText(`Escudo ${fmt(zone.wCm)} × ${fmt(zone.hCm)} cm`, centerX + 8, zy + zh + pxPerCm * 2.2);
+    const name = zone.id === "crest" ? "Escudo" : zone.id === "logo" ? "Logo" : zone.id === "number" ? "Número" : "Texto";
+    ctx.fillText(
+      `${name} ${fmt(zone.wCm)} × ${fmt(zone.hCm)} cm${zone.resizable ? " (ajustable)" : ""}`,
+      centerX + 8,
+      zy + zh + pxPerCm * 2.2,
+    );
     ctx.fillText(
       `${fmt(Math.abs(offsetCm))} cm del centro · ${fmt(zone.yCm)} cm del hombro`,
       centerX + 8,

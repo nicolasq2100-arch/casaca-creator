@@ -1,18 +1,19 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useRef, useState, type PointerEvent } from "react";
 import type { GarmentConfig } from "@/garments/garment.config";
 import { useDesignStore } from "@/design/store";
 import { SECTIONS, useEditorUi, type SectionId, type SheetDetent } from "./uiStore";
 import { useViewportHeight } from "./useMedia";
 import { SectionContent } from "./SectionContent";
+import { SectionTabs } from "./SectionTabs";
 import { DraftNote } from "./SceneOverlay";
 import type { DraftStatus } from "@/design/draft";
 
-const COMPACT_PX = 128;
+const COMPACT_PX = 120;
 /**
  * Altura media: 45 % de la pantalla (la escena es la protagonista). En pantallas de ~840 px entran las
- * cinco zonas de 02 Colores; en iPhones más bajos se scrollea antes que achicar la camiseta.
+ * seis zonas de Colores; en iPhones más bajos se scrollea antes que achicar la camiseta.
  */
 const MEDIUM_MIN_PX = 300;
 const ORDER: SheetDetent[] = ["compact", "medium", "tall"];
@@ -24,45 +25,6 @@ function detentHeights(vh: number): Record<SheetDetent, number> {
     medium: Math.max(MEDIUM_MIN_PX, Math.round(vh * 0.45)),
     tall: Math.round(vh * 0.85),
   };
-}
-
-export function SectionTabs({ onSelect }: { onSelect: (id: SectionId) => void }) {
-  const active = useEditorUi((s) => s.activeSection);
-  const refs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    const i = SECTIONS.findIndex((s) => s.id === active);
-    const delta = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!delta) return;
-    e.preventDefault();
-    const next = SECTIONS[(i + delta + SECTIONS.length) % SECTIONS.length]!;
-    onSelect(next.id);
-    refs.current[SECTIONS.indexOf(next)]?.focus();
-  };
-
-  return (
-    <div role="tablist" aria-label="Secciones del editor" className="tabs" onKeyDown={onKey}>
-      {SECTIONS.map((s, i) => (
-        <button
-          key={s.id}
-          ref={(el) => {
-            refs.current[i] = el;
-          }}
-          type="button"
-          role="tab"
-          id={`tab-${s.id}`}
-          aria-selected={s.id === active}
-          aria-controls="sheet-panel"
-          tabIndex={s.id === active ? 0 : -1}
-          className="tab"
-          onClick={() => onSelect(s.id)}
-        >
-          <span className="tab-num">{s.num}</span>
-          <span className="tab-label">{s.short}</span>
-        </button>
-      ))}
-    </div>
-  );
 }
 
 function CompactSummary({ garment }: { garment: GarmentConfig }) {
@@ -175,8 +137,8 @@ export function BottomSheet({ garment, draft }: { garment: GarmentConfig; draft:
         </button>
         <DraftNote draft={draft} className="sheet-draft" short />
       </div>
-      <SectionTabs onSelect={select} />
-      <div id="sheet-panel" role="tabpanel" aria-labelledby={`tab-${active}`} className={compact ? undefined : "sheet-body"}>
+      <SectionTabs variant="sheet" panelId="sheet-panel" onSelect={select} />
+      <div id="sheet-panel" role="tabpanel" aria-labelledby={`tab-sheet-${active}`} className={compact ? undefined : "sheet-body"}>
         {compact ? <CompactSummary garment={garment} /> : <SectionContent id={active} garment={garment} />}
       </div>
     </section>

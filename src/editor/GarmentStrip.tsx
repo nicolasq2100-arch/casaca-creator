@@ -51,7 +51,7 @@ export function GarmentStrip({ activeId }: { activeId: string }) {
                   <Silhouette kind={g.silhouette} />
                 )}
                 <span className="flex flex-col items-start leading-none">
-                  <span className="font-label text-[0.8125rem] font-semibold uppercase tracking-[0.06em]">{g.label}</span>
+                  <span className="text-[0.875rem] font-semibold">{g.label}</span>
                   {soon && <span className="mt-1 text-[0.6875rem] text-chalk/70">Próximamente</span>}
                 </span>
               </button>

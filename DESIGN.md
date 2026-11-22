@@ -21,29 +21,41 @@ La camiseta 3D es la protagonista absoluta; la interfaz la rodea y nunca le comp
 - Los colores del diseño del usuario NO son parte de la paleta de la interfaz.
 
 ## Tipografía
-- Números y títulos: **Big Shoulders Display** (condensada, de dorsal).
-- Etiquetas y controles: **Barlow Condensed**, mayúsculas con tracking amplio solo en etiquetas cortas.
-- Texto corrido: **Barlow**.
-- Medidas en cm: tipografía tabular (font-variant-numeric: tabular-nums).
+- Logo y títulos: **Righteous** (OFL), letras redondeadas y geométricas. Solo en el logo y en los títulos
+  de sección; nunca en botones, etiquetas ni texto.
+  - Logo: "Casaca" en gris (tiza al 60 %) y "Creator" en blanco (tiza).
+- Botones, etiquetas y texto: **Barlow**, una sola sans legible, en mayúscula y minúscula normales
+  (sin mayúsculas sostenidas ni tracking amplio).
+- Medidas en cm y códigos HEX: cifras tabulares (font-variant-numeric: tabular-nums).
 
 ## Layout
-- Selector de prenda arriba de la escena: Jugador · Arquero · Short · Medias · Kit completo
+- Selector de prenda arriba de todo, junto al logo: Jugador · Arquero · Short · Medias · Kit completo
   (miniaturas de la prenda real, no íconos genéricos).
-- Escritorio: escena 3D ocupa ~65% a la izquierda; panel de herramientas a la derecha, en columnas
-  tipo planilla de utilero (secciones numeradas: 01 Plantilla, 02 Colores, 03 Gráficos, 04 Capas, 05 Nombre y número).
-- **04 Capas** (imágenes y textos: escudo, ilustraciones, sponsors, frases, nombre del equipo): lista tipo
+- Secciones (pestañas **sin números**): Plantilla · Colores · Gráficos · Capas · Nombre.
+- **Escritorio:**
+  - Barra de herramientas debajo del selector: deshacer/rehacer a la izquierda, las pestañas de sección en
+    el centro y Frente / Espalda / Costado a la derecha.
+  - Panel de la sección elegida a la **izquierda**, debajo de deshacer/rehacer (~340 px), en hueso.
+  - La escena 3D ocupa el resto y la camiseta queda centrada en ese espacio. No hay panel a la derecha.
+- **Celular:** escena arriba, herramientas en una hoja inferior deslizable (tres alturas) con las mismas
+  pestañas sin números. Sobre la escena: deshacer/rehacer y Guías cm (solo ícono de regla) arriba a la
+  izquierda, Frente/Espalda/Costado arriba a la derecha; nada abajo, para no tapar el bajo de la camiseta.
+  El estado del borrador va en la línea del asa de la hoja.
+- Zonas de color de la camiseta: Frente, Espalda, Mangas, Cuello, Puños, Bajo.
+- **Capas** (imágenes y textos: escudo, ilustraciones, sponsors, frases, nombre del equipo): lista tipo
   planilla, una fila por capa, ordenada de arriba (más adelante) hacia abajo. Cada fila muestra miniatura,
   nombre, pieza donde va y tamaño en cm (tabular), con controles para reordenar, ocultar y borrar.
   Arriba de la lista, dos acciones: "Subir imagen" y "Agregar texto". El escudo es una fila más.
-  El nombre y número de cada jugador siguen en "05 Nombre y número".
-- Celular: escena arriba (55% de alto), herramientas en una hoja inferior deslizable con pestañas.
-- Bordes rectos o casi rectos (2-4 px). Divisores finos tipo línea de cancha.
+  El nombre y número de cada jugador siguen en "Nombre".
+- Botones con esquinas redondeadas (radio 10-12 px): deshacer/rehacer, vistas, Guías cm, pestañas y los
+  botones de los paneles. Muestras de color y campos con radio chico (4-6 px).
+- Divisores finos tipo línea de cancha.
 
 ## Detalles que dan identidad
 - Guías métricas como líneas de cal punteadas con la medida en cm al costado.
 - Las plantillas se muestran como camisetas colgadas en percha (miniaturas del render 3D, no íconos).
 - Microanimación al aplicar un color: la textura "se tiñe" desde el centro (200-300 ms), sin rebotes.
-- Estado vacío de "04 Capas" (todavía no hay ninguna capa): silueta punteada de un escudo con el texto
+- Estado vacío de "Capas" (todavía no hay ninguna capa): silueta punteada de un escudo con el texto
   "Subí tu escudo o un gráfico (PNG, JPG o SVG)" como acción principal de la sección, y debajo, más chico,
   "o agregá un texto". Tocar la silueta abre la subida de archivo.
 

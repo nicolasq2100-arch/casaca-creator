@@ -33,7 +33,7 @@ function ZoneList({ garment }: { garment: GarmentConfig }) {
             <button type="button" className="zone-row" onClick={() => openColorZone(zone.id)}>
               <Swatch hex={hex} />
               <span className="min-w-0 flex-1 text-left">
-                <span className="block font-label text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-ink-2">
+                <span className="block text-[0.8125rem] font-semibold text-ink-2">
                   {zone.label}
                 </span>
                 <span className="block truncate text-[0.9375rem] text-ink">{colorLabel(hex)}</span>
@@ -65,7 +65,7 @@ function ZonePicker({ garment, zone }: { garment: GarmentConfig; zone: ColorZone
           <ChevronLeftIcon />
           Zonas
         </button>
-        <h3 className="font-label text-[0.9375rem] font-semibold uppercase tracking-[0.08em] text-ink">{zone.label}</h3>
+        <h3 className="font-display text-lg text-ink">{zone.label}</h3>
       </div>
 
       {/* Muestra plana del HEX exacto: es el color que va a la ficha de fábrica. */}

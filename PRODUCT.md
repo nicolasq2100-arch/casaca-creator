@@ -66,6 +66,8 @@ Confirmado:
   Se pueden mover, escalar, rotar, reordenar, ocultar y borrar. En v1 cada capa queda recortada a su pieza
   y no cruza costuras. Las capas de imagen tienen **"Quitar fondo"** (blanco o un color elegido, con
   tolerancia), porque los equipos mandan JPG con fondo blanco.
+- **Zonas de color** de la camiseta de jugador: Frente, Espalda, Mangas, Cuello, Puños, Bajo. El panel lateral
+  (costado/axila) no es zona: es un gráfico de la etapa 2.
 - **Arranque**: 12 gráficos originales (3 de ellos degradés) y plantillas originales propias; nada de clubes reales.
 - **Nombre y número**: se diseñan con un nombre y número de muestra; los tamaños por defecto se marcan
   "a confirmar con la fábrica". La lista de jugadores se carga en el pedido.

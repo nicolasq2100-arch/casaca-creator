@@ -10,7 +10,8 @@ Origen: `modelos-originales/Soccer Printed Sports Jersey-Third Kit.glb` (export 
 - Unidades en metros, centrado en el origen. Frente hacia +Z, Y arriba.
 - Mallas por pieza: `front`, `back`, `sleeve_l`, `sleeve_r`, `cuff_l`, `cuff_r`, `hem_front`, `hem_back`, `collar`.
   Izquierda/derecha según quien la lleva puesta (`_l` está en +X).
-- `inner`: cara interior de todas las piezas en una malla, material liso `inner`, sin UV.
+- `inner`: cara interior de todas las piezas en una malla, material `inner`, **con el UV de cada pieza**:
+  la app le asigna la misma textura del diseño, oscurecida, para que por dentro cada pieza tenga su color.
 - Material `fabric`: sin textura de color (la pone el canvas), normal map de costuras, roughness 0,349, metal 0.
 - UV en 0..1 (el original usaba V negativa, mosaico UDIM 1001). Escala uniforme: **1 unidad UV = 115,4 cm**.
 - Compresión: `EXT_meshopt_compression` + `KHR_mesh_quantization` (requiere `MeshoptDecoder` en `GLTFLoader`).

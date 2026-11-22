@@ -4,12 +4,12 @@ export type SectionId = "template" | "colors" | "graphics" | "layers" | "names";
 export type SheetDetent = "compact" | "medium" | "tall";
 export type CameraView = "front" | "back" | "side";
 
-export const SECTIONS: { id: SectionId; num: string; label: string; short: string; stage: number }[] = [
-  { id: "template", num: "01", label: "Plantilla", short: "Plantilla", stage: 5 },
-  { id: "colors", num: "02", label: "Colores", short: "Colores", stage: 1 },
-  { id: "graphics", num: "03", label: "Gráficos", short: "Gráficos", stage: 2 },
-  { id: "layers", num: "04", label: "Capas", short: "Capas", stage: 3 },
-  { id: "names", num: "05", label: "Nombre y número", short: "Nombre", stage: 4 },
+export const SECTIONS: { id: SectionId; label: string; short: string; stage: number }[] = [
+  { id: "template", label: "Plantilla", short: "Plantilla", stage: 5 },
+  { id: "colors", label: "Colores", short: "Colores", stage: 1 },
+  { id: "graphics", label: "Gráficos", short: "Gráficos", stage: 2 },
+  { id: "layers", label: "Capas", short: "Capas", stage: 3 },
+  { id: "names", label: "Nombre y número", short: "Nombre", stage: 4 },
 ];
 
 interface EditorUi {

@@ -32,7 +32,7 @@ const HIGHLIGHT_MS = 650;
 const TINT_RADIUS = 0.46;
 
 function labelFontFamily() {
-  const v = getComputedStyle(document.documentElement).getPropertyValue("--ff-label").trim();
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--ff-body").trim();
   return v || "system-ui, sans-serif";
 }
 
@@ -134,6 +134,8 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
     next.texture.needsUpdate = true;
     fabric.map = next.texture;
     if (fabric instanceof THREE.MeshPhysicalMaterial) fabric.sheenColorMap = next.texture;
+    const inner = materials.inner;
+    if (inner instanceof THREE.MeshStandardMaterial) inner.map = next.texture;
     current.current = nextIndex;
 
     const shader = shaderRef.current;
@@ -149,11 +151,18 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
 
   // Cara interior: el color principal, un poco más oscuro.
   useEffect(() => {
+    // Cara interior: la misma textura del diseño, oscurecida. Cada pieza muestra su propio color por dentro
+    // (con un solo color, el frente teñía el interior de la espalda y asomaba en costuras y puños).
     const inner = materials.inner;
-    const mainZone = garment.colorZones[0];
-    if (!(inner instanceof THREE.MeshStandardMaterial) || !mainZone) return;
-    inner.color.set(design.colors[mainZone.id] ?? mainZone.defaultHex).multiplyScalar(garment.fabric.innerShade);
-  }, [materials, design, garment]);
+    if (!(inner instanceof THREE.MeshStandardMaterial)) return;
+    inner.map = surfaces[current.current]!.texture;
+    inner.color.setScalar(garment.fabric.innerShade);
+    inner.needsUpdate = true;
+    return () => {
+      inner.map = null;
+      inner.needsUpdate = true;
+    };
+  }, [materials, surfaces, garment]);
 
   useEffect(() => () => surfaces.forEach((s) => s.texture.dispose()), [surfaces]);
 

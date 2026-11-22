@@ -23,8 +23,14 @@ export function sanitizeDesign(raw: unknown): DesignState | null {
   const base = createDefaultDesign(garment);
   const colors = { ...base.colors };
   if (r.colors && typeof r.colors === "object") {
+    const raw = { ...(r.colors as Record<string, unknown>) };
+    // Migración: la zona "body" (Cuerpo) se separó en Frente y Espalda.
+    if (isHex(raw.body)) {
+      raw.front ??= raw.body;
+      raw.back ??= raw.body;
+    }
     for (const zone of garment.colorZones) {
-      const v = (r.colors as Record<string, unknown>)[zone.id];
+      const v = raw[zone.id];
       if (isHex(v)) colors[zone.id] = v;
     }
   }

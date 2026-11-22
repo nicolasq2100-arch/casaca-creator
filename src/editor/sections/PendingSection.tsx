@@ -34,7 +34,7 @@ export function PendingSection({ id, stage }: { id: SectionId; stage: number }) 
           </li>
         ))}
       </ul>
-      <p className="mt-4 font-label text-xs font-semibold uppercase tracking-[0.1em] text-ink-3">
+      <p className="mt-4 text-xs font-semibold text-ink-3">
         Llega en la etapa {stage}
       </p>
     </div>

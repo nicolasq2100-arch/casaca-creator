@@ -77,13 +77,13 @@ export interface GarmentConfig {
     sheenRoughness: number;
     /** Intensidad del normal map de trama (0 = sin trama). */
     knitStrength: number;
-    /** Cara interior: color principal del diseño multiplicado por este factor (en espacio lineal). */
+    /** Cara interior: la textura del diseño multiplicada por este factor (en espacio lineal). */
     innerShade: number;
   };
   /** Caja de la prenda en metros, para encuadrar la cámara. */
   boundsM: { w: number; h: number };
   pieces: Partial<Record<PieceId, PieceSpec>>;
-  /** Zonas de color en el orden en que se muestran. La primera es el color principal. */
+  /** Zonas de color en el orden en que se muestran. */
   colorZones: ColorZone[];
   placements: Placement[];
 }
@@ -124,7 +124,9 @@ export const jerseyPlayer: GarmentConfig = {
     collar: { label: "Cuello", uv: { u: 0.28029, v: 0.05917, w: 0.45754, h: 0.02167 }, sizeCm: { w: 52.8, h: 2.5 } },
   },
   colorZones: [
-    { id: "body", label: "Cuerpo", pieces: ["front", "back"], defaultHex: "#F7F7F5" },
+    // Frente y espalda son zonas separadas. El panel lateral (costado/axila) NO es zona: es un gráfico (etapa 2).
+    { id: "front", label: "Frente", pieces: ["front"], defaultHex: "#F7F7F5" },
+    { id: "back", label: "Espalda", pieces: ["back"], defaultHex: "#F7F7F5" },
     { id: "sleeves", label: "Mangas", pieces: ["sleeve_l", "sleeve_r"], defaultHex: "#F7F7F5" },
     { id: "collar", label: "Cuello", pieces: ["collar"], defaultHex: "#14213D" },
     { id: "cuffs", label: "Puños", pieces: ["cuff_l", "cuff_r"], defaultHex: "#14213D" },

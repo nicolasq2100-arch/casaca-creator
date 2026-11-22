@@ -47,6 +47,8 @@ Pensado para revenderse a otros equipos o fábricas: nada del cliente puede qued
     Se mide en cm sobre la altura de la prenda, no del UV, para que frente y espalda empalmen en la
     costura del costado (ej.: degradé en la parte de abajo que da toda la vuelta).
   Galería con filtros, búsqueda y paginación.
+  - **Panel lateral (costado/axila)**: NO es una zona de color. Es un gráfico de la etapa 2: una franja sobre
+    las costuras de los costados (frente y espalda, bajo la sisa) que el usuario recolorea como cualquier canal.
   Prohibido copiar o nombrar diseños de clubes reales: todos los gráficos son originales.
 - **Cuellos**: cada cuello es una malla 3D separada (GLB) que se intercambia sobre el cuerpo de la
   camiseta, todas alineadas al mismo punto y con UV propio. Se registran en `collars/registry.ts`.

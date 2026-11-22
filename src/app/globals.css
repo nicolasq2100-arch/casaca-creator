@@ -65,6 +65,7 @@ input {
   /* ---------- Estructura ---------- */
   .editor {
     display: grid;
+    height: 100vh; /* respaldo para Safari < 15.4, sin dvh */
     height: 100dvh;
     /* minmax(0, 1fr): sin esto la columna toma el ancho de la tira de prendas y se sale de la pantalla. */
     grid-template-columns: minmax(0, 1fr);
@@ -584,5 +585,61 @@ input {
   }
   .ink-btn:hover {
     background: var(--color-ink-2);
+  }
+
+  /* ---------- Diagnóstico (?debug=1) ---------- */
+  .diag {
+    position: fixed;
+    z-index: 50;
+    top: calc(env(safe-area-inset-top) + 0.5rem);
+    left: 0.5rem;
+    right: 0.5rem;
+    background: rgb(28 27 25 / 0.97);
+    color: var(--color-chalk);
+    border: 1px solid rgb(232 228 216 / 0.24);
+    border-radius: 4px;
+  }
+  @media (min-width: 1024px) {
+    .diag {
+      right: auto;
+      width: 34rem;
+    }
+  }
+  .diag-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.25rem 0 0.75rem;
+  }
+  .diag-title {
+    flex: 1;
+    font-family: var(--font-label);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .diag-btn {
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    font-family: var(--font-label);
+    font-weight: 600;
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-chalk);
+  }
+  .diag-body {
+    max-height: 45vh;
+    overflow: auto;
+    margin: 0;
+    padding: 0.5rem 0.75rem 0.75rem;
+    border-top: 1px solid rgb(232 228 216 / 0.16);
+    font: 11px/1.45 ui-monospace, Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    /* Un toque selecciona todo: en http (sin portapapeles) se copia con el menú del sistema. */
+    -webkit-user-select: all;
+    user-select: all;
   }
 }

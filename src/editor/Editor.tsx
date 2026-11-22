@@ -8,9 +8,16 @@ import { SceneOverlay } from "./SceneOverlay";
 import { BottomSheet } from "./BottomSheet";
 import { DesktopPanel } from "./DesktopPanel";
 import { useMediaQuery } from "./useMedia";
+import { DiagnosticsPanel } from "./DiagnosticsPanel";
+import { SceneChunkGuard } from "./scene/SceneChunkGuard";
+import { SceneMessage } from "./scene/SceneMessage";
 
 // three.js solo corre en el navegador: la escena no se prerenderiza.
-const EditorScene = dynamic(() => import("./scene/EditorScene"), { ssr: false });
+// Mientras llega su código se ve "Cargando camiseta"; si no llega, SceneChunkGuard muestra el error.
+const EditorScene = dynamic(() => import("./scene/EditorScene"), {
+  ssr: false,
+  loading: () => <SceneMessage title="Cargando camiseta…" />,
+});
 
 export function Editor() {
   const garment = jerseyPlayer; // v1: solo la camiseta de jugador
@@ -28,11 +35,14 @@ export function Editor() {
       </header>
 
       <main className="editor-scene" aria-label="Vista 3D de la camiseta">
-        <EditorScene garment={garment} />
+        <SceneChunkGuard>
+          <EditorScene garment={garment} />
+        </SceneChunkGuard>
         <SceneOverlay draft={draft} />
       </main>
 
       {desktop ? <DesktopPanel garment={garment} /> : <BottomSheet garment={garment} draft={draft} />}
+      <DiagnosticsPanel />
     </div>
   );
 }

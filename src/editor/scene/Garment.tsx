@@ -7,10 +7,26 @@ import { useGLTF, useTexture } from "@react-three/drei";
 import type { GarmentConfig } from "@/garments/garment.config";
 import { useDesignStore } from "@/design/store";
 import { useEditorUi } from "@/editor/uiStore";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { applyFabricShader, type FabricShader } from "@/three/fabricShader";
 import { drawDesign, TEXTURE_SIZE } from "@/three/designCanvas";
+import { useSceneDiag } from "./diagnostics";
 
 const TINT_MS = 260;
+/**
+ * Lado de la textura del diseño. En celulares se usa 1536 (9 MB por canvas en vez de 16 MB):
+ * iOS Safari corta el contexto WebGL o niega canvas 2D cuando se pasa de memoria, y en pantalla chica
+ * no hay diferencia visible. La ficha de fábrica usa los originales, no esta textura.
+ */
+function designTextureSize(gl: THREE.WebGLRenderer) {
+  const mobile = window.matchMedia("(pointer: coarse)").matches && Math.min(window.screen.width, window.screen.height) < 820;
+  return Math.min(mobile ? 1536 : TEXTURE_SIZE, gl.capabilities.maxTextureSize);
+}
+
+// Decodificador de meshopt de three (meshoptimizer 1.1), más nuevo que el que trae drei.
+const useMeshopt = (loader: { setMeshoptDecoder: (d: unknown) => unknown }) => {
+  loader.setMeshoptDecoder(MeshoptDecoder);
+};
 const HIGHLIGHT_MS = 650;
 /** Radio (m) desde el centro de la prenda que cubre el teñido. */
 const TINT_RADIUS = 0.46;
@@ -24,10 +40,17 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function Garment({ garment }: { garment: GarmentConfig }) {
-  const { scene, materials } = useGLTF(garment.modelUrl, false, true);
+  const { scene, materials } = useGLTF(garment.modelUrl, false, false, useMeshopt);
   const knitTexture = useTexture(garment.knit.normalUrl);
   const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
+
+  // Si llegamos acá, el modelo y la trama cargaron (Suspense los esperó).
+  useEffect(() => {
+    const d = useSceneDiag.getState();
+    d.setAsset("glb", "ok");
+    d.setAsset("knit", "ok");
+  }, []);
 
   const design = useDesignStore((s) => s.design);
   const lastChange = useDesignStore((s) => s.lastChange);
@@ -39,9 +62,11 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
   // Así cada cambio sube una sola textura a la GPU.
   const surfaces = useMemo(() => {
     const anisotropy = gl.capabilities.getMaxAnisotropy();
+    const side = designTextureSize(gl);
+    useSceneDiag.getState().patch({ designTextureSize: side });
     return [0, 1].map(() => {
       const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = TEXTURE_SIZE;
+      canvas.width = canvas.height = side;
       const texture = new THREE.CanvasTexture(canvas);
       texture.flipY = false; // mismo criterio que las texturas glTF: v = 0 arriba
       texture.colorSpace = THREE.SRGBColorSpace;
@@ -100,7 +125,11 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
     const nextIndex = 1 - current.current;
     const next = surfaces[nextIndex]!;
     const ctx = next.canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      // iOS niega el canvas 2D cuando se pasa del límite de memoria: sin esto la tela queda negra.
+      useSceneDiag.getState().setFatal("el navegador no dio memoria para la textura del diseño (canvas 2D)");
+      return;
+    }
     drawDesign(ctx, design, garment, { guides, highlightZone, labelFont: labelFontFamily() });
     next.texture.needsUpdate = true;
     fabric.map = next.texture;

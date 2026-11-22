@@ -10,8 +10,11 @@ import { DraftNote } from "./SceneOverlay";
 import type { DraftStatus } from "@/design/draft";
 
 const COMPACT_PX = 128;
-/** La altura media siempre deja ver las cinco zonas de 02 Colores. */
-const MEDIUM_MIN_PX = 368;
+/**
+ * Altura media: 45 % de la pantalla (la escena es la protagonista). En pantallas de ~840 px entran las
+ * cinco zonas de 02 Colores; en iPhones más bajos se scrollea antes que achicar la camiseta.
+ */
+const MEDIUM_MIN_PX = 300;
 const ORDER: SheetDetent[] = ["compact", "medium", "tall"];
 const DETENT_LABEL: Record<SheetDetent, string> = { compact: "chico", medium: "medio", tall: "grande" };
 

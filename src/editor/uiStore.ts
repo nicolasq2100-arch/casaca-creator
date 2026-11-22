@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { PatternCategory } from "@/patterns/types";
 
 export type SectionId = "template" | "colors" | "graphics" | "layers" | "names";
 export type SheetDetent = "compact" | "medium" | "tall";
@@ -12,8 +13,13 @@ export const SECTIONS: { id: SectionId; label: string; short: string; stage: num
   { id: "names", label: "Nombre y número", short: "Nombre", stage: 4 },
 ];
 
+export type GraphicsView = { mode: "gallery" } | { mode: "settings" } | { mode: "channel"; index: number };
+
 interface EditorUi {
   activeSection: SectionId;
+  /** Vista abierta en Gráficos: galería, ajustes del gráfico o color de un canal. */
+  graphicsView: GraphicsView;
+  graphicsCategory: PatternCategory | "all";
   /** Zona abierta en 02 Colores (null = lista de zonas). */
   colorZone: string | null;
   sheetDetent: SheetDetent;
@@ -24,6 +30,10 @@ interface EditorUi {
   /** Vista más cercana a la cámara actual (null si está entre medio). */
   currentView: CameraView | null;
   setSection: (id: SectionId) => void;
+  setGraphicsView: (v: GraphicsView) => void;
+  setGraphicsCategory: (c: PatternCategory | "all") => void;
+  /** Marca una zona en el 3D por un instante (sin abrirla). */
+  flashZone: (zoneId: string) => void;
   openColorZone: (zoneId: string | null) => void;
   setSheetDetent: (d: SheetDetent) => void;
   toggleGuides: () => void;
@@ -33,6 +43,8 @@ interface EditorUi {
 
 export const useEditorUi = create<EditorUi>()((set, get) => ({
   activeSection: "colors",
+  graphicsView: { mode: "gallery" },
+  graphicsCategory: "all",
   colorZone: null,
   sheetDetent: "medium",
   guides: false,
@@ -40,6 +52,9 @@ export const useEditorUi = create<EditorUi>()((set, get) => ({
   viewRequest: null,
   currentView: "front",
   setSection: (id) => set({ activeSection: id }),
+  setGraphicsView: (v) => set({ graphicsView: v }),
+  setGraphicsCategory: (c) => set({ graphicsCategory: c }),
+  flashZone: (zoneId) => set({ highlight: { zoneId, nonce: (get().highlight?.nonce ?? 0) + 1 } }),
   openColorZone: (zoneId) =>
     set({
       colorZone: zoneId,

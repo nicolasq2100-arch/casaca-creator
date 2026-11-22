@@ -77,6 +77,7 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
   const current = useRef(0);
   const shaderRef = useRef<FabricShader | null>(null);
   const tint = useRef<{ start: number } | null>(null);
+  const tintedNonce = useRef(-1);
 
   // Material de tela: acabado de la config, trama de punto y teñido.
   useEffect(() => {
@@ -118,38 +119,46 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
   }, [highlight]);
 
   // Se redibuja solo cuando cambia el diseño o lo que se superpone (guías, marca de zona).
+  // El dibujo se agrupa en un cuadro: mientras se arrastra un slider se dibuja como mucho una vez por cuadro.
   useEffect(() => {
     const fabric = materials.fabric;
     if (!(fabric instanceof THREE.MeshStandardMaterial)) return;
-    const prev = surfaces[current.current]!;
-    const nextIndex = 1 - current.current;
-    const next = surfaces[nextIndex]!;
-    const ctx = next.canvas.getContext("2d");
-    if (!ctx) {
-      // iOS niega el canvas 2D cuando se pasa del límite de memoria: sin esto la tela queda negra.
-      useSceneDiag.getState().setFatal("el navegador no dio memoria para la textura del diseño (canvas 2D)");
-      return;
-    }
-    drawDesign(ctx, design, garment, { guides, highlightZone, labelFont: labelFontFamily() });
-    next.texture.needsUpdate = true;
-    fabric.map = next.texture;
-    if (fabric instanceof THREE.MeshPhysicalMaterial) fabric.sheenColorMap = next.texture;
-    const inner = materials.inner;
-    if (inner instanceof THREE.MeshStandardMaterial) inner.map = next.texture;
-    current.current = nextIndex;
+    // El teñido acompaña una sola vez a cada cambio discreto (no al redibujar por guías o por la marca de zona).
+    const animate =
+      (lastChange.kind === "color" || lastChange.kind === "graphic") &&
+      lastChange.nonce !== tintedNonce.current &&
+      !prefersReducedMotion();
+    tintedNonce.current = lastChange.nonce;
+    const frame = requestAnimationFrame(() => {
+      const prev = surfaces[current.current]!;
+      const nextIndex = 1 - current.current;
+      const next = surfaces[nextIndex]!;
+      const ctx = next.canvas.getContext("2d");
+      if (!ctx) {
+        // iOS niega el canvas 2D cuando se pasa del límite de memoria: sin esto la tela queda negra.
+        useSceneDiag.getState().setFatal("el navegador no dio memoria para la textura del diseño (canvas 2D)");
+        return;
+      }
+      drawDesign(ctx, design, garment, { guides, highlightZone, labelFont: labelFontFamily() });
+      next.texture.needsUpdate = true;
+      fabric.map = next.texture;
+      if (fabric instanceof THREE.MeshPhysicalMaterial) fabric.sheenColorMap = next.texture;
+      const inner = materials.inner;
+      if (inner instanceof THREE.MeshStandardMaterial) inner.map = next.texture;
+      current.current = nextIndex;
 
-    const shader = shaderRef.current;
-    if (shader) {
-      shader.uniforms.prevMap.value = prev.texture;
-      const animate = lastChange.kind === "color" && !prefersReducedMotion();
-      tint.current = animate ? { start: performance.now() } : null;
-      shader.uniforms.tintProgress.value = animate ? 0 : 1;
-    }
-    invalidate();
+      const shader = shaderRef.current;
+      if (shader) {
+        shader.uniforms.prevMap.value = prev.texture;
+        tint.current = animate ? { start: performance.now() } : null;
+        shader.uniforms.tintProgress.value = animate ? 0 : 1;
+      }
+      invalidate();
+    });
+    return () => cancelAnimationFrame(frame);
     // lastChange se lee a propósito sin ser dependencia: el teñido acompaña al cambio de diseño.
   }, [design, guides, highlightZone, surfaces, materials, garment, invalidate]);
 
-  // Cara interior: el color principal, un poco más oscuro.
   useEffect(() => {
     // Cara interior: la misma textura del diseño, oscurecida. Cada pieza muestra su propio color por dentro
     // (con un solo color, el frente teñía el interior de la espalda y asomaba en costuras y puños).

@@ -1,6 +1,7 @@
 import type { GarmentConfig, PieceSpec } from "@/garments/garment.config";
 import type { DesignState } from "@/design/types";
 import { relativeLuminance } from "@/palette/colorMath";
+import { drawGraphic } from "@/patterns/render";
 
 // Dibuja el DesignState sobre el layout UV de la prenda: x = u * tamaño, y = v * tamaño (v = 0 arriba).
 
@@ -41,6 +42,10 @@ export function drawDesign(
       ctx.fillRect(r.x, r.y, r.w, r.h);
     }
   }
+
+  // Gráfico de fondo (rayas, paneles, texturas, degradés), por anillos para empalmar en las costuras.
+  drawGraphic(ctx, design.graphic, garment);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 
   if (overlay.guides) drawGuides(ctx, design, garment, size, overlay.labelFont);
   if (overlay.highlightZone) drawHighlight(ctx, design, garment, size, overlay.highlightZone);

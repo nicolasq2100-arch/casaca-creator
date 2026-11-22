@@ -55,6 +55,23 @@ export interface Placement {
   resizable: boolean;
 }
 
+/**
+ * Anillo para dibujar gráficos: piezas que se cosen formando una vuelta (cuerpo, manga, cuello).
+ * x recorre la vuelta en cm (0 … circumferenceCm, periódica); y en cm desde la costura de abajo, hacia arriba.
+ * Así una raya que cruza una costura sigue en la pieza de al lado.
+ */
+export interface PatternRing {
+  id: string;
+  circumferenceCm: number;
+  /** Posiciones x de las costuras verticales (para el panel lateral). */
+  seamsCm: number[];
+  /** Altura hasta la que llegan los paneles de costura (axila). */
+  panelTopCm: number;
+  /** Altura del centro de la banda pectoral (o de la manga). */
+  bandCenterCm: number;
+  pieces: { piece: PieceId; xOffsetCm: number; yOffsetCm: number }[];
+}
+
 export interface GarmentConfig {
   id: string;
   label: string;
@@ -85,6 +102,7 @@ export interface GarmentConfig {
   pieces: Partial<Record<PieceId, PieceSpec>>;
   /** Zonas de color en el orden en que se muestran. */
   colorZones: ColorZone[];
+  patternRings: PatternRing[];
   placements: Placement[];
 }
 
@@ -131,6 +149,54 @@ export const jerseyPlayer: GarmentConfig = {
     { id: "collar", label: "Cuello", pieces: ["collar"], defaultHex: "#14213D" },
     { id: "cuffs", label: "Puños", pieces: ["cuff_l", "cuff_r"], defaultHex: "#14213D" },
     { id: "hem", label: "Bajo", pieces: ["hem_front", "hem_back"], defaultHex: "#F7F7F5" },
+  ],
+  // Vueltas para los gráficos. Visto desde afuera: el borde derecho del frente (+X, izquierda de quien la lleva)
+  // se cose con el borde izquierdo de la espalda; el borde derecho de la espalda vuelve al izquierdo del frente.
+  patternRings: [
+    {
+      id: "body",
+      circumferenceCm: 104.12,
+      seamsCm: [0, 52.06],
+      panelTopCm: 44, // costados rectos hasta la sisa (DXF)
+      bandCenterCm: 47, // pecho
+      pieces: [
+        { piece: "front", xOffsetCm: 0, yOffsetCm: 0 },
+        { piece: "back", xOffsetCm: 52.06, yOffsetCm: 0 },
+        // El bajo sigue debajo del cuerpo: franjas y degradés continúan.
+        { piece: "hem_front", xOffsetCm: 0, yOffsetCm: -2.5 },
+        { piece: "hem_back", xOffsetCm: 52.06, yOffsetCm: -2.5 },
+      ],
+    },
+    {
+      id: "sleeve_l",
+      circumferenceCm: 39.99,
+      seamsCm: [0],
+      panelTopCm: 18.01,
+      bandCenterCm: 9,
+      pieces: [
+        { piece: "sleeve_l", xOffsetCm: 0, yOffsetCm: 0 },
+        { piece: "cuff_l", xOffsetCm: 1.27, yOffsetCm: -2.53 },
+      ],
+    },
+    {
+      id: "sleeve_r",
+      circumferenceCm: 39.99,
+      seamsCm: [0],
+      panelTopCm: 18.01,
+      bandCenterCm: 9,
+      pieces: [
+        { piece: "sleeve_r", xOffsetCm: 0, yOffsetCm: 0 },
+        { piece: "cuff_r", xOffsetCm: 1.27, yOffsetCm: -2.53 },
+      ],
+    },
+    {
+      id: "collar",
+      circumferenceCm: 52.8,
+      seamsCm: [0],
+      panelTopCm: 2.5,
+      bandCenterCm: 1.25,
+      pieces: [{ piece: "collar", xOffsetCm: 0, yOffsetCm: 0 }],
+    },
   ],
   placements: [
     // Escudo: 8 × 8 cm por defecto, TAMAÑO AJUSTABLE por el usuario.

@@ -6,10 +6,6 @@ const PENDING: Partial<Record<SectionId, { what: string; items: string[] }>> = {
     what: "Camisetas de arranque para no empezar de cero.",
     items: ["Plantillas originales colgadas en percha", "Cambian colores y gráfico, y respetan tus capas"],
   },
-  graphics: {
-    what: "El diseño de fondo de la tela.",
-    items: ["12 gráficos originales, con 3 degradés", "Recoloreá cada canal y elegí en qué zonas va"],
-  },
   layers: {
     what: "Todo lo que va encima: escudo, ilustraciones, sponsors y textos.",
     items: ["Subí PNG, JPG o SVG y quitale el fondo", "Mové, escalá y rotá con medidas en cm"],

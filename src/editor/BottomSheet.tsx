@@ -7,6 +7,7 @@ import { SECTIONS, useEditorUi, type SectionId, type SheetDetent } from "./uiSto
 import { useViewportHeight } from "./useMedia";
 import { SectionContent } from "./SectionContent";
 import { SectionTabs } from "./SectionTabs";
+import { patternsById } from "@/patterns/registry";
 import { DraftNote } from "./SceneOverlay";
 import type { DraftStatus } from "@/design/draft";
 
@@ -30,6 +31,8 @@ function detentHeights(vh: number): Record<SheetDetent, number> {
 function CompactSummary({ garment }: { garment: GarmentConfig }) {
   const active = useEditorUi((s) => s.activeSection);
   const colors = useDesignStore((s) => s.design.colors);
+  const graphicId = useDesignStore((s) => s.design.graphic?.id);
+  const graphicName = graphicId ? patternsById[graphicId]?.name : undefined;
   const section = SECTIONS.find((s) => s.id === active)!;
   return (
     <div className="flex h-11 items-center gap-3 px-4 text-sm text-ink-2">
@@ -44,6 +47,8 @@ function CompactSummary({ garment }: { garment: GarmentConfig }) {
             {garment.colorZones.length} zonas de color
           </span>
         </>
+      ) : active === "graphics" ? (
+        <span>{graphicName ? `Gráfico: ${graphicName}` : "Sin gráfico"}</span>
       ) : (
         <span>
           {section.label}: llega en la etapa {section.stage}

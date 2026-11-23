@@ -2,13 +2,15 @@
 
 import { useRef, useState, type PointerEvent } from "react";
 import type { GarmentConfig } from "@/garments/garment.config";
-import { useDesignStore } from "@/design/store";
-import { SECTIONS, useEditorUi, type SectionId, type SheetDetent } from "./uiStore";
+import { matchesTemplate, useDesignStore } from "@/design/store";
+import { templates } from "@/templates/registry";
+import { useEditorUi, type SectionId, type SheetDetent } from "./uiStore";
 import { useViewportHeight } from "./useMedia";
 import { SectionContent } from "./SectionContent";
 import { SectionTabs } from "./SectionTabs";
 import { patternsById } from "@/patterns/registry";
 import { DraftNote } from "./SceneOverlay";
+import { Toast } from "./Toast";
 import { useNameWarnings } from "./sections/NamesSection";
 import type { DraftStatus } from "@/design/draft";
 
@@ -37,7 +39,8 @@ function CompactSummary({ garment }: { garment: GarmentConfig }) {
   const layerCount = useDesignStore((s) => s.design.layers.length);
   const nn = useDesignStore((s) => s.design.nameNumber);
   const nameWarn = useNameWarnings(garment);
-  const section = SECTIONS.find((s) => s.id === active)!;
+  const design = useDesignStore((s) => s.design);
+  const current = active === "template" ? templates.find((t) => matchesTemplate(design, t, garment)) : undefined;
   return (
     <div className="flex h-11 items-center gap-3 px-4 text-sm text-ink-2">
       {active === "colors" ? (
@@ -63,9 +66,7 @@ function CompactSummary({ garment }: { garment: GarmentConfig }) {
       ) : active === "layers" ? (
         <span>{layerCount ? `${layerCount} ${layerCount === 1 ? "capa" : "capas"}` : "Sin capas: subí tu escudo"}</span>
       ) : (
-        <span>
-          {section.label}: llega en la etapa {section.stage}
-        </span>
+        <span className="truncate">{current ? `Plantilla: ${current.name}` : `${templates.length} plantillas para arrancar`}</span>
       )}
     </div>
   );
@@ -76,6 +77,7 @@ export function BottomSheet({ garment, draft }: { garment: GarmentConfig; draft:
   const setDetent = useEditorUi((s) => s.setSheetDetent);
   const active = useEditorUi((s) => s.activeSection);
   const setSection = useEditorUi((s) => s.setSection);
+  const toast = useEditorUi((s) => s.toast);
   const heights = detentHeights(useViewportHeight());
   const [dragHeight, setDragHeight] = useState<number | null>(null);
   const drag = useRef<{ startY: number; startH: number; lastY: number; lastT: number; v: number; moved: boolean } | null>(null);
@@ -140,6 +142,7 @@ export function BottomSheet({ garment, draft }: { garment: GarmentConfig; draft:
     <section className="sheet" style={{ height }} data-dragging={dragHeight !== null || undefined} aria-label="Herramientas">
       <div
         className="sheet-handle"
+        data-toast={toast ? "" : undefined}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -153,7 +156,8 @@ export function BottomSheet({ garment, draft }: { garment: GarmentConfig; draft:
         >
           <span aria-hidden="true" />
         </button>
-        <DraftNote draft={draft} className="sheet-draft" short />
+        {/* El aviso ocupa el lugar del estado del borrador mientras dura: no tapa las pestañas ni la camiseta. */}
+        {toast ? <Toast placement="sheet" /> : <DraftNote draft={draft} className="sheet-draft" short />}
       </div>
       <SectionTabs variant="sheet" panelId="sheet-panel" onSelect={select} />
       <div id="sheet-panel" role="tabpanel" aria-labelledby={`tab-sheet-${active}`} className={compact ? undefined : "sheet-body"}>

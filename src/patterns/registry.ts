@@ -162,6 +162,30 @@ const smooth = (e0: number, e1: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
+/** Centros de frente y espalda en la vuelta (el frente va de 0 a C/2). */
+const quarter = (d: PatternDrawContext) => d.ring.circumferenceCm / 4;
+
+/** Pinta [a, b] (cm de la vuelta) en todas las copias de la vuelta que caen en la pieza. */
+function fillSpan(d: PatternDrawContext, a: number, b: number, yA: number, yB: number, color: string) {
+  d.ctx.fillStyle = color;
+  forEachWrap(d, (shift) => d.ctx.fillRect(a + shift, yA, b - a, yB - yA));
+}
+
+/**
+ * Banda que sigue la línea y = yAt(x) (lineal por tramos, con quiebres en `breaks`): se pinta entre
+ * yAt + from y yAt + to. Sirve para el chevrón.
+ */
+function fillAlong(d: PatternDrawContext, yAt: (x: number) => number, breaks: number[], from: number, to: number, color: string) {
+  const xs = [d.x0, d.x1, ...breaks.filter((x) => x > d.x0 && x < d.x1)].sort((a, b) => a - b);
+  const { ctx } = d;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  xs.forEach((x, i) => (i ? ctx.lineTo(x, yAt(x) + to) : ctx.moveTo(x, yAt(x) + to)));
+  for (let i = xs.length - 1; i >= 0; i--) ctx.lineTo(xs[i]!, yAt(xs[i]!) + from);
+  ctx.closePath();
+  ctx.fill();
+}
+
 // ---------- catálogo ----------
 
 const BODY = ["front", "back"];
@@ -305,6 +329,130 @@ export const patterns: PatternDef[] = [
       ctx.fillStyle = d.params.channels[1]!;
       ctx.fillRect(d.x0, cy + h / 2, d.x1 - d.x0, f);
       ctx.fillRect(d.x0, cy - h / 2 - f, d.x1 - d.x0, f);
+    },
+  },
+  {
+    id: "mitades",
+    name: "Mitades",
+    category: "paneles",
+    channels: [
+      { label: "Primera mitad", defaultHex: "#2850A0" },
+      { label: "Segunda mitad", defaultHex: "#F7F7F5" },
+      { label: "Filete", defaultHex: "#2850A0" },
+    ],
+    scale: { label: "Filete", min: 0, max: 3, step: 0.5, default: 0 },
+    defaultZones: BODY,
+    thumb: { x0: 4, y0: 14, span: 44 },
+    draw: (d) => {
+      // Corte vertical en el centro del frente y de la espalda: cada lado del cuerpo de un color.
+      const q = quarter(d);
+      const f = d.params.scaleCm / 2;
+      fillSpan(d, -q, q, d.y0, d.y1, d.params.channels[0]!);
+      fillSpan(d, q, 3 * q, d.y0, d.y1, d.params.channels[1]!);
+      if (f > 0) {
+        fillSpan(d, q - f, q + f, d.y0, d.y1, d.params.channels[2]!);
+        fillSpan(d, 3 * q - f, 3 * q + f, d.y0, d.y1, d.params.channels[2]!);
+      }
+    },
+  },
+  {
+    id: "dos-tonos",
+    name: "Dos tonos",
+    category: "paneles",
+    channels: [
+      { label: "Arriba", defaultHex: "#F7F7F5" },
+      { label: "Abajo", defaultHex: "#C8102E" },
+      { label: "Filete", defaultHex: "#C8102E" },
+    ],
+    scale: { label: "Altura del corte", min: 15, max: 55, step: 0.5, default: 36 },
+    defaultZones: BODY,
+    thumb: { x0: 4, y0: 14, span: 44 },
+    draw: (d) => {
+      // Corte horizontal (medido desde el bajo): arriba un color, abajo otro, con un filete fino.
+      const cut = d.params.scaleCm;
+      const { ctx } = d;
+      ctx.fillStyle = d.params.channels[1]!;
+      ctx.fillRect(d.x0, d.y0, d.x1 - d.x0, cut - d.y0);
+      ctx.fillStyle = d.params.channels[0]!;
+      ctx.fillRect(d.x0, cut, d.x1 - d.x0, d.y1 - cut);
+      ctx.fillStyle = d.params.channels[2]!;
+      ctx.fillRect(d.x0, cut - 0.6, d.x1 - d.x0, 1.2);
+    },
+  },
+  {
+    id: "cuartos",
+    name: "Cuartos",
+    category: "paneles",
+    channels: [
+      { label: "Cuarto A", defaultHex: "#C8102E" },
+      { label: "Cuarto B", defaultHex: "#F7F7F5" },
+    ],
+    scale: { label: "Altura del corte", min: 15, max: 55, step: 0.5, default: 36 },
+    defaultZones: BODY,
+    thumb: { x0: 4, y0: 14, span: 44 },
+    draw: (d) => {
+      // Mitades cruzadas: arriba y abajo se invierten en el corte horizontal.
+      const q = quarter(d);
+      const cut = d.params.scaleCm;
+      const [a, b] = [d.params.channels[0]!, d.params.channels[1]!];
+      fillSpan(d, -q, q, cut, d.y1, a);
+      fillSpan(d, q, 3 * q, cut, d.y1, b);
+      fillSpan(d, -q, q, d.y0, cut, b);
+      fillSpan(d, q, 3 * q, d.y0, cut, a);
+    },
+  },
+  {
+    id: "chevron",
+    name: "Chevrón",
+    category: "paneles",
+    channels: [
+      { label: "Chevrón", defaultHex: "#C8102E" },
+      { label: "Filete", defaultHex: "#14213D" },
+    ],
+    scale: { label: "Ancho", min: 3, max: 16, step: 0.5, default: 7 },
+    angle: { min: 10, max: 40, default: 24 },
+    defaultZones: BODY,
+    thumb: { x0: 4, y0: 18, span: 44 },
+    draw: (d) => {
+      // V con la punta en el centro del frente (y de la espalda); en las costuras las dos ramas se encuentran
+      // a la misma altura, así empalma.
+      const q = quarter(d);
+      const C = d.ring.circumferenceCm;
+      const slope = Math.tan(d.params.angleDeg * DEG);
+      const apex = d.ring.bandCenterCm - 9;
+      const yAt = (x: number) => {
+        const m = ((((x - q) % (C / 2)) + C / 2) % (C / 2));
+        return apex + Math.min(m, C / 2 - m) * slope;
+      };
+      const breaks: number[] = [];
+      for (let k = Math.floor(d.x0 / q) - 1; k <= Math.ceil(d.x1 / q) + 1; k++) breaks.push(k * q);
+      const h = d.params.scaleCm / Math.cos(d.params.angleDeg * DEG);
+      const f = Math.max(0.5, d.params.scaleCm * 0.08);
+      fillAlong(d, yAt, breaks, -h / 2 - f, h / 2 + f, d.params.channels[1]!);
+      fillAlong(d, yAt, breaks, -h / 2, h / 2, d.params.channels[0]!);
+    },
+  },
+  {
+    id: "canesu",
+    name: "Canesú",
+    category: "paneles",
+    channels: [
+      { label: "Canesú", defaultHex: "#1F3A93" },
+      { label: "Filete", defaultHex: "#D7261E" },
+    ],
+    scale: { label: "Alto", min: 6, max: 26, step: 0.5, default: 15 },
+    defaultZones: BODY,
+    thumb: { x0: 4, y0: 30, span: 44 },
+    draw: (d) => {
+      // Hombros de otro color: desde arriba de la prenda hacia abajo, con un filete en el borde.
+      const top = d.ringYMax;
+      const edge = top - d.params.scaleCm;
+      const f = Math.max(0.5, d.params.scaleCm * 0.06);
+      const { ctx } = d;
+      ctx.fillStyle = d.params.channels[0]!;
+      ctx.fillRect(d.x0, edge, d.x1 - d.x0, d.y1 - edge + 1);
+      ctx.fillStyle = d.params.channels[1]!;
+      ctx.fillRect(d.x0, edge - f, d.x1 - d.x0, f);
     },
   },
   {

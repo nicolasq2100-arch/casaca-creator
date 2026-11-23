@@ -109,7 +109,7 @@ function useAddText(garment: GarmentConfig) {
       name: "Texto",
       piece: "back",
       xCm: round1(back.sizeCm.w / 2),
-      yCm: 12,
+      yCm: 50, // debajo del número de la espalda (el nombre de muestra va arriba)
       sizeCm: 4,
       rotationDeg: 0,
       hidden: false,

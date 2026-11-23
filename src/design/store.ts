@@ -4,6 +4,7 @@ import { isHex } from "@/palette/colorMath";
 import { patternsById } from "@/patterns/registry";
 import { DESIGN_VERSION, type DesignState, type GraphicState, type Layer, type NameNumberSlot, type NameNumberState } from "./types";
 import type { NameNumberSlotId } from "@/garments/garment.config";
+import type { TemplateDef } from "@/templates/registry";
 import { DEFAULT_FONT, textFontsById } from "@/layers/fonts";
 
 const HISTORY_LIMIT = 100;
@@ -85,6 +86,40 @@ export function createGraphic(id: string): GraphicState | null {
 }
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+/** Colores y gráfico de una plantilla, completando lo que no indique con los valores del registro. */
+export function templateBase(t: TemplateDef, garment: GarmentConfig = jerseyPlayer): Pick<DesignState, "colors" | "graphic"> {
+  const colors = Object.fromEntries(garment.colorZones.map((z) => [z.id, isHex(t.colors[z.id]) ? t.colors[z.id]! : z.defaultHex]));
+  let graphic: GraphicState | null = null;
+  const base = t.graphic ? createGraphic(t.graphic.id) : null;
+  if (t.graphic && base) {
+    const def = patternsById[t.graphic.id]!;
+    graphic = {
+      ...base,
+      channels: base.channels.map((c, i) => (isHex(t.graphic!.channels[i]) ? t.graphic!.channels[i]! : c)),
+      zones: t.graphic.zones ?? base.zones,
+      scaleCm: clamp(t.graphic.scaleCm ?? base.scaleCm, def.scale.min, def.scale.max),
+      angleDeg: def.angle ? clamp(t.graphic.angleDeg ?? base.angleDeg, def.angle.min, def.angle.max) : 0,
+    };
+  }
+  return { colors, graphic };
+}
+
+/** ¿El diseño tiene hoy exactamente los colores y el gráfico de la plantilla? */
+export function matchesTemplate(design: DesignState, t: TemplateDef, garment: GarmentConfig = jerseyPlayer) {
+  const base = templateBase(t, garment);
+  const sameColors = garment.colorZones.every((z) => design.colors[z.id]?.toUpperCase() === base.colors[z.id]?.toUpperCase());
+  const a = design.graphic, b = base.graphic;
+  if (!a || !b) return sameColors && a === b;
+  return (
+    sameColors &&
+    a.id === b.id &&
+    a.scaleCm === b.scaleCm &&
+    a.angleDeg === b.angleDeg &&
+    a.channels.join().toUpperCase() === b.channels.join().toUpperCase() &&
+    [...a.zones].sort().join() === [...b.zones].sort().join()
+  );
+}
 
 export const newLayerId = () => `l_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 
@@ -219,6 +254,8 @@ interface DesignStore {
   duplicateLayer: (id: string) => string | null;
   /** Mueve la capa en el orden: +1 = más arriba (adelante), -1 = más abajo. */
   moveLayer: (id: string, delta: 1 | -1) => void;
+  /** Aplica colores y gráfico de una plantilla. No toca capas ni nombre y número. Un solo paso de historial. */
+  applyTemplate: (t: TemplateDef) => void;
   /** Texto, tipografía, color y contorno del nombre y número. */
   updateNameNumber: (patch: Partial<Omit<NameNumberState, "slots">>, mode?: "live" | "commit") => void;
   /** Posición, tamaño o visibilidad de un lugar (nombre, número, número del frente). */
@@ -335,6 +372,12 @@ export const useDesignStore = create<DesignStore>()((set, get) => {
       const layers = [...design.layers];
       [layers[i], layers[j]] = [layers[j]!, layers[i]!];
       commit({ ...design, layers }, "layer");
+    },
+
+    applyTemplate: (t) => {
+      const { design } = get();
+      const garment = garments[design.garmentId] ?? jerseyPlayer;
+      commit({ ...design, ...templateBase(t, garment) }, "graphic");
     },
 
     updateNameNumber: (patch, mode = "commit") => {

@@ -69,7 +69,7 @@ Confirmado:
 - **Zonas de color** de la camiseta de jugador: Frente, Espalda, Mangas, Cuello, Puños, Bajo. El panel lateral
   (costado/axila) no es zona: es un gráfico de la etapa 2.
 - **Arranque**: 12 gráficos originales (3 de ellos degradés) y plantillas originales propias; nada de clubes reales.
-- **Plantillas (etapa 5, pendiente)**: 30 plantillas inspiradas en combinaciones clásicas de colores de
+- **Plantillas (etapa 5)**: 30 plantillas inspiradas en combinaciones clásicas de colores de
   selecciones mundialistas (reemplaza la idea inicial de 6-8).
   - Solo colores y estructuras genéricas: bastones, franjas, mitades, bandas, vivos. Sin escudos, logos,
     estampados característicos de marcas ni nombres de países: cada una lleva un nombre descriptivo propio.
@@ -133,7 +133,7 @@ Decisiones abiertas (no inventar):
   Se prueba cargando sus archivos desde la app, como cualquier usuario.
 - Modelo 3D: camiseta de jugador (export de CLO, talle M, licencia comercial extendida), optimizada en
   `modelos-optimizados/`. Todavía no hay GLB de arquero, short ni medias.
-- Todavía no hay plantillas, patrones, más cuellos, testimonios ni clientes que se puedan citar. No se
+- Ya hay 30 plantillas y 17 gráficos originales. Todavía no hay más cuellos, testimonios ni clientes que se puedan citar. No se
   fabrican: hasta que existan se usan placeholders marcados como tales.
 
 ## Product Principles

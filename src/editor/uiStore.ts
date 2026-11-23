@@ -42,6 +42,10 @@ interface EditorUi {
   /** Marca una zona en el 3D por un instante. */
   highlight: { zoneId: string; nonce: number } | null;
   viewRequest: { view: CameraView; nonce: number } | null;
+  /** Aviso breve sobre la escena (ej. "Plantilla aplicada · Deshacer"). */
+  toast: { message: string; undo: boolean; nonce: number } | null;
+  /** Filtro de color en Plantilla. */
+  templateFilter: string;
   /** Vista más cercana a la cámara actual (null si está entre medio). */
   currentView: CameraView | null;
   setSection: (id: SectionId) => void;
@@ -56,6 +60,9 @@ interface EditorUi {
   setSheetDetent: (d: SheetDetent) => void;
   toggleGuides: () => void;
   requestView: (view: CameraView) => void;
+  showToast: (message: string, undo?: boolean) => void;
+  hideToast: () => void;
+  setTemplateFilter: (f: string) => void;
   setCurrentView: (view: CameraView | null) => void;
 }
 
@@ -71,6 +78,8 @@ export const useEditorUi = create<EditorUi>()((set, get) => ({
   guides: false,
   highlight: null,
   viewRequest: null,
+  toast: null,
+  templateFilter: "all",
   currentView: "front",
   setSection: (id) => set({ activeSection: id }),
   setGraphicsView: (v) => set({ graphicsView: v }),
@@ -87,6 +96,9 @@ export const useEditorUi = create<EditorUi>()((set, get) => ({
   setSheetDetent: (d) => set({ sheetDetent: d }),
   toggleGuides: () => set({ guides: !get().guides }),
   requestView: (view) => set({ viewRequest: { view, nonce: (get().viewRequest?.nonce ?? 0) + 1 } }),
+  showToast: (message, undo = false) => set({ toast: { message, undo, nonce: (get().toast?.nonce ?? 0) + 1 } }),
+  hideToast: () => set({ toast: null }),
+  setTemplateFilter: (f) => set({ templateFilter: f }),
   setCurrentView: (view) => {
     if (get().currentView !== view) set({ currentView: view });
   },

@@ -310,6 +310,7 @@ input {
 
   /* ---------- Hoja inferior (celular) ---------- */
   .sheet {
+    position: relative;
     grid-area: panel;
     display: flex;
     flex-direction: column;
@@ -1205,6 +1206,249 @@ input {
   .layer-handle:active > span {
     background: var(--color-signal);
     color: #fff;
+  }
+
+  /* ---------- Plantillas ---------- */
+  /* Celular: tres por fila (se ven camisetas enteras); escritorio (panel de 340 px): dos. */
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.875rem 0.5rem;
+  }
+  @media (min-width: 1024px) {
+    .template-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 0.75rem;
+    }
+  }
+  /* Filtro y contador fijos arriba mientras se recorre la galería. */
+  /* Carril de muestras en el celular: la que sigue queda a medio ver y el borde se desvanece ("hay más"). */
+  .template-filters .filter-row {
+    gap: 0.625rem;
+  }
+  @media (max-width: 1023px) {
+    .template-filters .filter-row {
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent);
+      mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent);
+    }
+  }
+  .template-filters {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin-inline: -1rem;
+    padding: 0.5rem 1rem 0.625rem;
+    background: var(--color-bone);
+    border-bottom: 1px solid var(--color-line);
+  }
+  /* En la hoja, el scroll tiene 0,5 rem arriba: el filtro se pega al borde, sin que asome nada encima. */
+  .sheet-body .template-filters {
+    top: -0.5rem;
+  }
+  @media (min-width: 1024px) {
+    .template-filters {
+      margin-inline: -1.25rem;
+      padding-inline: 1.25rem;
+    }
+  }
+  .swatch-chip {
+    display: inline-flex;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .swatch-chip span {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(28 27 25 / 0.22);
+    transition: box-shadow 150ms ease-out;
+  }
+  .swatch-chip[aria-pressed="true"] span {
+    box-shadow:
+      inset 0 0 0 1px rgb(28 27 25 / 0.22),
+      0 0 0 2px var(--color-bone),
+      0 0 0 4px var(--color-ink);
+  }
+  @media (hover: hover) {
+    .swatch-chip:not([aria-pressed="true"]):hover span {
+      box-shadow:
+        inset 0 0 0 1px rgb(28 27 25 / 0.22),
+        0 0 0 2px var(--color-bone),
+        0 0 0 3px var(--color-ink-3);
+    }
+  }
+  .template-card {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 0.4375rem;
+    text-align: left;
+  }
+  /* Vidriera: carbón como la escena, la camiseta colgada de su percha. */
+  .template-hang {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--color-coal); /* igual al fondo de la escena: la miniatura se funde */
+    transition: box-shadow 150ms ease-out;
+  }
+  .template-hanger {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: var(--color-chalk);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+  .template-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .template-fallback {
+    position: absolute;
+    inset: 32% 22% 14%;
+    display: grid;
+    grid-template-rows: 3fr 1fr 1fr;
+    gap: 2px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .template-name {
+    font-size: 0.75rem;
+    line-height: 1.25;
+    color: var(--color-ink-2);
+  }
+  .template-card[aria-pressed="true"] .template-hang {
+    box-shadow:
+      0 0 0 2px var(--color-bone),
+      0 0 0 4px var(--color-ink);
+  }
+  .template-card[aria-pressed="true"] .template-name {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+  @media (hover: hover) {
+    .template-card:not([aria-pressed="true"]):hover .template-hang {
+      box-shadow:
+        0 0 0 2px var(--color-bone),
+        0 0 0 3px var(--color-ink-3);
+    }
+  }
+
+  /* Aviso sobre la escena: abajo al centro en el celular (ahí no hay controles). */
+  .toast-slot {
+    position: absolute;
+    left: 50%;
+    bottom: 0.75rem;
+    z-index: 6;
+    translate: -50% 0;
+    pointer-events: none;
+  }
+  /* Celular: en la línea del asa, en lugar del estado del borrador. */
+  .toast-slot--sheet {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    translate: none;
+  }
+  /* Mientras está el aviso, la barrita del asa se oculta (la hoja se sigue arrastrando igual). */
+  .sheet-handle[data-toast] .sheet-grip span {
+    opacity: 0;
+  }
+  .toast-slot--sheet .toast {
+    min-height: 1.75rem;
+    padding: 0 0 0 0.5rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-ink);
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+  .toast-slot--sheet .toast-sep {
+    color: var(--color-ink-3);
+  }
+  /* El botón conserva 44 px de alto (su área se extiende sobre el borde de las pestañas). */
+  .toast-slot--sheet .toast {
+    align-items: flex-start;
+    line-height: 1.75rem;
+  }
+  .toast-slot--sheet .toast-btn {
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    padding-bottom: 1rem;
+    margin-bottom: -1rem; /* 44 px de alto: la hoja recorta arriba, el área extra va hacia abajo */
+    line-height: 1.75rem;
+    color: var(--color-ink);
+    text-decoration-color: var(--color-ink-3);
+  }
+  /* Escritorio: arriba de la escena, para no tapar el bajo de la camiseta. */
+  @media (min-width: 1024px) {
+    .toast-slot {
+      top: 0.75rem;
+      bottom: auto;
+    }
+  }
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.375rem 0 1rem;
+    border: 1px solid rgb(232 228 216 / 0.18);
+    border-radius: var(--radius-group);
+    background: rgb(39 37 31 / 0.96);
+    color: var(--color-chalk);
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    pointer-events: auto;
+    animation: toast-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .toast-sep {
+    color: rgb(232 228 216 / 0.5);
+  }
+  .toast-btn {
+    min-height: 2.75rem;
+    padding: 0 0.625rem;
+    border-radius: var(--radius-btn);
+    font-weight: 600;
+    color: var(--color-chalk);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgb(232 228 216 / 0.45);
+  }
+  @media (hover: hover) {
+    .toast-btn:hover {
+      background: rgb(232 228 216 / 0.1);
+    }
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toast {
+      animation: none;
+    }
   }
 
   /* ---------- Diagnóstico (?debug=1) ---------- */

@@ -9,6 +9,7 @@ import { SectionContent } from "./SectionContent";
 import { SectionTabs } from "./SectionTabs";
 import { patternsById } from "@/patterns/registry";
 import { DraftNote } from "./SceneOverlay";
+import { useNameWarnings } from "./sections/NamesSection";
 import type { DraftStatus } from "@/design/draft";
 
 const COMPACT_PX = 120;
@@ -34,6 +35,8 @@ function CompactSummary({ garment }: { garment: GarmentConfig }) {
   const graphicId = useDesignStore((s) => s.design.graphic?.id);
   const graphicName = graphicId ? patternsById[graphicId]?.name : undefined;
   const layerCount = useDesignStore((s) => s.design.layers.length);
+  const nn = useDesignStore((s) => s.design.nameNumber);
+  const nameWarn = useNameWarnings(garment);
   const section = SECTIONS.find((s) => s.id === active)!;
   return (
     <div className="flex h-11 items-center gap-3 px-4 text-sm text-ink-2">
@@ -50,6 +53,13 @@ function CompactSummary({ garment }: { garment: GarmentConfig }) {
         </>
       ) : active === "graphics" ? (
         <span>{graphicName ? `Gráfico: ${graphicName}` : "Sin gráfico"}</span>
+      ) : active === "names" ? (
+        <span className="truncate">
+          Muestra: {[nn.slots.name.enabled && nn.name, (nn.slots.number.enabled || nn.slots.frontNumber.enabled) && nn.number].filter(Boolean).join(" · ") || "sin nombre ni número"}
+          {(nameWarn.tooWide || nameWarn.lowContrast) && (
+            <span className="font-semibold text-[#7a5512]"> · {nameWarn.tooWide ? "no entra" : "poco contraste"}</span>
+          )}
+        </span>
       ) : active === "layers" ? (
         <span>{layerCount ? `${layerCount} ${layerCount === 1 ? "capa" : "capas"}` : "Sin capas: subí tu escudo"}</span>
       ) : (

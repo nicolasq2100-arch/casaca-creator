@@ -13,6 +13,11 @@ export interface LayerScreenGeometry {
   halfW: number;
   halfH: number;
   rotationDeg: number;
+  /** El nombre y número no rotan: sin asa de rotar. */
+  canRotate: boolean;
+  /** Medida que muestra la etiqueta (cm): en textos, sin el borde, igual que el campo "Alto". */
+  labelW: number;
+  labelH: number;
 }
 
 export interface PieceHit {

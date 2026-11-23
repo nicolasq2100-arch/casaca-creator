@@ -59,6 +59,29 @@ export interface TextLayer extends LayerBase {
 
 export type Layer = ImageLayer | TextLayer;
 
+/** Un lugar del nombre o número (espalda, frente). */
+export interface NameNumberSlot {
+  enabled: boolean;
+  piece: string;
+  xCm: number;
+  yCm: number;
+  /** Alto de las letras / cifras en cm. */
+  sizeCm: number;
+}
+
+/**
+ * Nombre y número DE MUESTRA: sirven para diseñar cómo van. La lista de jugadores se carga en el pedido.
+ * Comparten tipografía, color y contorno; cada lugar tiene su posición y tamaño.
+ */
+export interface NameNumberState {
+  name: string;
+  number: string;
+  fontId: string;
+  color: string;
+  outline: { color: string; widthCm: number };
+  slots: Record<"name" | "number" | "frontNumber", NameNumberSlot>;
+}
+
 export interface DesignState {
   version: typeof DESIGN_VERSION;
   garmentId: string;
@@ -67,4 +90,6 @@ export interface DesignState {
   graphic: GraphicState | null;
   /** Capas de abajo hacia arriba (la última se dibuja encima). */
   layers: Layer[];
+  /** Se dibuja encima de las capas. Una plantilla no lo cambia. */
+  nameNumber: NameNumberState;
 }

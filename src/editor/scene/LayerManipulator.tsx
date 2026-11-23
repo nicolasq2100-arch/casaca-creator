@@ -5,8 +5,8 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { GarmentConfig } from "@/garments/garment.config";
 import { useDesignStore } from "@/design/store";
-import { useEditorUi } from "@/editor/uiStore";
 import { layerBridge } from "@/editor/layerBridge";
+import { currentEditTarget } from "@/editor/editTargets";
 import { cmToUv, hitLayer, layerSizeCm, uvToPieceCm } from "@/layers/geometry";
 import { UvIndex } from "./uvIndex";
 
@@ -72,14 +72,13 @@ export function LayerManipulator({ garment, root }: { garment: GarmentConfig; ro
   useEffect(() => {
     const el = gl.domElement;
     const onDown = (e: PointerEvent) => {
-      const ui = useEditorUi.getState();
-      if (ui.activeSection !== "layers" || !layerBridge.pick || !e.isPrimary) return;
+      const t = currentEditTarget();
+      if (!t || !layerBridge.pick || !e.isPrimary) return;
       const hit = layerBridge.pick(e.clientX, e.clientY);
       if (!hit) return;
-      const layers = useDesignStore.getState().design.layers;
+      const layers = t.layers;
       const under = (l: (typeof layers)[number]) => !l.hidden && l.piece === hit.piece && hitLayer(l, hit.xCm, hit.yCm, 0.5);
-      const selectedId = ui.layersView.mode === "layer" ? ui.layersView.id : null;
-      const selected = layers.find((l) => l.id === selectedId && under(l));
+      const selected = layers.find((l) => l.id === t.selectedId && under(l));
       if (!selected) {
         const tapped = [...layers].reverse().find(under);
         if (!tapped) return;
@@ -88,9 +87,7 @@ export function LayerManipulator({ garment, root }: { garment: GarmentConfig; ro
         const onTapUp = (ev: PointerEvent) => {
           el.removeEventListener("pointerup", onTapUp);
           el.removeEventListener("pointercancel", onTapUp);
-          if (ev.type === "pointerup" && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 6) {
-            useEditorUi.getState().setLayersView({ mode: "layer", id: tapped.id });
-          }
+          if (ev.type === "pointerup" && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 6) t.select(tapped.id);
         };
         el.addEventListener("pointerup", onTapUp);
         el.addEventListener("pointercancel", onTapUp);
@@ -103,7 +100,7 @@ export function LayerManipulator({ garment, root }: { garment: GarmentConfig; ro
       const onMove = (ev: PointerEvent) => {
         const h = layerBridge.pick?.(ev.clientX, ev.clientY);
         if (!h || h.piece !== target.piece) return;
-        useDesignStore.getState().updateLayer(target.id, { xCm: round1(h.xCm + off.x), yCm: round1(h.yCm + off.y) }, "live");
+        t.update(target.id, { xCm: round1(h.xCm + off.x), yCm: round1(h.yCm + off.y) }, "live");
       };
       const onUp = () => {
         el.removeEventListener("pointermove", onMove);
@@ -126,9 +123,8 @@ export function LayerManipulator({ garment, root }: { garment: GarmentConfig; ro
     [],
   );
   useFrame(() => {
-    const ui = useEditorUi.getState();
-    const layerId = ui.activeSection === "layers" && ui.layersView.mode === "layer" ? ui.layersView.id : null;
-    const layer = layerId ? useDesignStore.getState().design.layers.find((l) => l.id === layerId) : null;
+    const t = currentEditTarget();
+    const layer = t?.selectedId ? t.layers.find((l) => l.id === t.selectedId) : null;
     if (!layer || layer.hidden) {
       if (layerBridge.geometry) {
         layerBridge.geometry = null;
@@ -170,6 +166,9 @@ export function LayerManipulator({ garment, root }: { garment: GarmentConfig; ro
       halfW: w / 2,
       halfH: h / 2,
       rotationDeg: layer.rotationDeg,
+      canRotate: t!.canRotate,
+      labelW: layer.kind === "text" ? w - layer.outline.widthCm * 2 : w,
+      labelH: layer.kind === "text" ? layer.sizeCm : h,
     };
     layerBridge.emit();
   });

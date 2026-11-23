@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { garments, jerseyPlayer, type GarmentConfig } from "@/garments/garment.config";
 import { isHex } from "@/palette/colorMath";
 import { patternsById } from "@/patterns/registry";
-import { DESIGN_VERSION, type DesignState, type GraphicState, type Layer } from "./types";
+import { DESIGN_VERSION, type DesignState, type GraphicState, type Layer, type NameNumberSlot, type NameNumberState } from "./types";
+import type { NameNumberSlotId } from "@/garments/garment.config";
 import { DEFAULT_FONT, textFontsById } from "@/layers/fonts";
 
 const HISTORY_LIMIT = 100;
@@ -14,6 +15,58 @@ export function createDefaultDesign(garment: GarmentConfig = jerseyPlayer): Desi
     colors: Object.fromEntries(garment.colorZones.map((z) => [z.id, z.defaultHex])),
     graphic: null,
     layers: [],
+    nameNumber: createNameNumber(garment),
+  };
+}
+
+export const MAX_NAME_LENGTH = 16;
+export const SAMPLE_NAME = "APELLIDO";
+export const SAMPLE_NUMBER = "10";
+
+/** Nombre y número de muestra con las posiciones por defecto de la prenda. */
+export function createNameNumber(garment: GarmentConfig = jerseyPlayer): NameNumberState {
+  const s = garment.nameNumber.slots;
+  const slot = (id: NameNumberSlotId): NameNumberSlot => ({ enabled: s[id].enabled, piece: s[id].piece, xCm: s[id].xCm, yCm: s[id].yCm, sizeCm: s[id].sizeCm });
+  return {
+    name: SAMPLE_NAME,
+    number: SAMPLE_NUMBER,
+    fontId: DEFAULT_FONT,
+    color: "#14213D",
+    outline: { color: "#F7F7F5", widthCm: 0 },
+    slots: { name: slot("name"), number: slot("number"), frontNumber: slot("frontNumber") },
+  };
+}
+
+/** Número de dorsal: 0 a 99, solo cifras. */
+export const cleanNumber = (v: string) => v.replace(/\D/g, "").slice(0, 2);
+
+function sanitizeNameNumber(raw: unknown, garment: GarmentConfig): NameNumberState {
+  const base = createNameNumber(garment);
+  if (!raw || typeof raw !== "object") return base;
+  const r = raw as Record<string, unknown>;
+  const num = (v: unknown, f: number) => (typeof v === "number" && Number.isFinite(v) ? v : f);
+  const o = (r.outline ?? {}) as Record<string, unknown>;
+  const rawSlots = (r.slots ?? {}) as Record<string, Record<string, unknown> | undefined>;
+  const slots = { ...base.slots };
+  for (const id of Object.keys(slots) as NameNumberSlotId[]) {
+    const v = rawSlots[id];
+    if (!v || typeof v !== "object") continue;
+    const piece = typeof v.piece === "string" && v.piece in garment.pieces ? v.piece : slots[id].piece;
+    slots[id] = {
+      enabled: typeof v.enabled === "boolean" ? v.enabled : slots[id].enabled,
+      piece,
+      xCm: num(v.xCm, slots[id].xCm),
+      yCm: num(v.yCm, slots[id].yCm),
+      sizeCm: clamp(num(v.sizeCm, slots[id].sizeCm), 1, 60),
+    };
+  }
+  return {
+    name: typeof r.name === "string" ? r.name.slice(0, MAX_NAME_LENGTH) : base.name,
+    number: typeof r.number === "string" ? cleanNumber(r.number) : base.number,
+    fontId: typeof r.fontId === "string" && textFontsById[r.fontId] ? r.fontId : base.fontId,
+    color: isHex(r.color) ? r.color : base.color,
+    outline: { color: isHex(o.color) ? o.color : base.outline.color, widthCm: clamp(num(o.widthCm, 0), 0, 2) },
+    slots,
   };
 }
 
@@ -127,7 +180,13 @@ export function sanitizeDesign(raw: unknown): DesignState | null {
       if (isHex(v)) colors[zone.id] = v;
     }
   }
-  return { ...base, colors, graphic: sanitizeGraphic(r.graphic, garment), layers: sanitizeLayers(r.layers, garment) };
+  return {
+    ...base,
+    colors,
+    graphic: sanitizeGraphic(r.graphic, garment),
+    layers: sanitizeLayers(r.layers, garment),
+    nameNumber: sanitizeNameNumber(r.nameNumber, garment),
+  };
 }
 
 /**
@@ -160,6 +219,10 @@ interface DesignStore {
   duplicateLayer: (id: string) => string | null;
   /** Mueve la capa en el orden: +1 = más arriba (adelante), -1 = más abajo. */
   moveLayer: (id: string, delta: 1 | -1) => void;
+  /** Texto, tipografía, color y contorno del nombre y número. */
+  updateNameNumber: (patch: Partial<Omit<NameNumberState, "slots">>, mode?: "live" | "commit") => void;
+  /** Posición, tamaño o visibilidad de un lugar (nombre, número, número del frente). */
+  updateNameSlot: (slot: NameNumberSlotId, patch: Partial<NameNumberSlot>, mode?: "live" | "commit") => void;
   undo: () => void;
   redo: () => void;
   hydrate: (design: DesignState | null) => void;
@@ -179,6 +242,13 @@ export const useDesignStore = create<DesignStore>()((set, get) => {
       gestureBase: null,
       lastChange: bump(kind, lastChange),
     });
+  };
+
+  /** "live": sin historial hasta commitGesture (arrastre, slider, tecleo); "commit": un paso. */
+  const apply = (next: DesignState, mode: "live" | "commit") => {
+    const { design, gestureBase, lastChange } = get();
+    if (mode === "live") set({ design: next, gestureBase: gestureBase ?? design, lastChange: bump("live", lastChange) });
+    else commit(next, "layer");
   };
 
   return {
@@ -265,6 +335,17 @@ export const useDesignStore = create<DesignStore>()((set, get) => {
       const layers = [...design.layers];
       [layers[i], layers[j]] = [layers[j]!, layers[i]!];
       commit({ ...design, layers }, "layer");
+    },
+
+    updateNameNumber: (patch, mode = "commit") => {
+      const { design } = get();
+      apply({ ...design, nameNumber: { ...design.nameNumber, ...patch } }, mode);
+    },
+
+    updateNameSlot: (slot, patch, mode = "commit") => {
+      const { design } = get();
+      const nn = design.nameNumber;
+      apply({ ...design, nameNumber: { ...nn, slots: { ...nn.slots, [slot]: { ...nn.slots[slot], ...patch } } } }, mode);
     },
 
     undo: () => {

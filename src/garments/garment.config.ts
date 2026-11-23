@@ -55,6 +55,20 @@ export interface Placement {
   resizable: boolean;
 }
 
+/** Lugares del nombre y número de muestra. */
+export type NameNumberSlotId = "name" | "number" | "frontNumber";
+
+export interface NameNumberSlotDefault {
+  label: string;
+  piece: PieceId;
+  /** Centro, en cm desde la esquina superior izquierda de la pieza vista desde afuera. */
+  xCm: number;
+  yCm: number;
+  /** Alto de las letras / cifras en cm. */
+  sizeCm: number;
+  enabled: boolean;
+}
+
 /**
  * Anillo para dibujar gráficos: piezas que se cosen formando una vuelta (cuerpo, manga, cuello).
  * x recorre la vuelta en cm (0 … circumferenceCm, periódica); y en cm desde la costura de abajo, hacia arriba.
@@ -104,6 +118,12 @@ export interface GarmentConfig {
   colorZones: ColorZone[];
   patternRings: PatternRing[];
   placements: Placement[];
+  /** Nombre y número de muestra: posiciones y tamaños por defecto. */
+  nameNumber: {
+    slots: Record<NameNumberSlotId, NameNumberSlotDefault>;
+    /** Ancho aproximado que entra a la altura del nombre (entre las sisas). Si el nombre lo supera, se avisa. */
+    nameMaxWidthCm: number;
+  };
 }
 
 // Camiseta de jugador. Fuente: export de CLO (talle M), molde DXF en mm.
@@ -205,6 +225,17 @@ export const jerseyPlayer: GarmentConfig = {
     // el logo de marca; la ubicación definitiva del logo todavía no está decidida.
     { id: "crest", piece: "front", xCm: 31.31, yCm: 16.37, wCm: 8, hCm: 8, resizable: true },
   ],
+  // Nombre y número de muestra. TODAS ESTAS MEDIDAS SON UNA PROPUESTA, A CONFIRMAR CON LA FÁBRICA:
+  // nombre de 6 cm de alto arriba de la espalda, número de 25 cm debajo, y número chico de 10 cm en el pecho
+  // derecho de quien la lleva (opuesto al escudo, que está en x 35,31).
+  nameNumber: {
+    slots: {
+      name: { label: "Nombre en la espalda", piece: "back", xCm: 26.03, yCm: 10, sizeCm: 6, enabled: true },
+      number: { label: "Número en la espalda", piece: "back", xCm: 26.03, yCm: 31, sizeCm: 25, enabled: true },
+      frontNumber: { label: "Número chico en el frente", piece: "front", xCm: 16.75, yCm: 21, sizeCm: 10, enabled: false },
+    },
+    nameMaxWidthCm: 32,
+  },
 };
 
 export const garments: Record<string, GarmentConfig> = {

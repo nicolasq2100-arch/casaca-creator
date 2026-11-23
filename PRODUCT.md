@@ -69,6 +69,15 @@ Confirmado:
 - **Zonas de color** de la camiseta de jugador: Frente, Espalda, Mangas, Cuello, Puños, Bajo. El panel lateral
   (costado/axila) no es zona: es un gráfico de la etapa 2.
 - **Arranque**: 12 gráficos originales (3 de ellos degradés) y plantillas originales propias; nada de clubes reales.
+- **Plantillas (etapa 5, pendiente)**: 30 plantillas inspiradas en combinaciones clásicas de colores de
+  selecciones mundialistas (reemplaza la idea inicial de 6-8).
+  - Solo colores y estructuras genéricas: bastones, franjas, mitades, bandas, vivos. Sin escudos, logos,
+    estampados característicos de marcas ni nombres de países: cada una lleva un nombre descriptivo propio.
+  - Si hace falta para cubrirlas, se suman gráficos genéricos nuevos al registro (mitades, cuartos, chevrón,
+    franja horizontal).
+  - Son bases 100 % editables: aplicar una carga los colores por zona y el gráfico; después el usuario cambia
+    lo que quiera (colores, gráfico, escala, capas, nombre y número).
+  - Aplicar una plantilla **no borra** las capas ni el nombre y número que ya tenga el diseño.
 - **Nombre y número**: se diseñan con un nombre y número de muestra; los tamaños por defecto se marcan
   "a confirmar con la fábrica". La lista de jugadores se carga en el pedido.
 - **Borrador local**: el diseño se guarda solo en el dispositivo mientras no exista "Guardar diseño".

@@ -3,6 +3,7 @@ import type { DesignState } from "@/design/types";
 import { relativeLuminance } from "@/palette/colorMath";
 import { drawGraphic } from "@/patterns/render";
 import { drawLayers } from "@/layers/render";
+import { nameNumberLayers } from "@/layers/nameNumber";
 
 // Dibuja el DesignState sobre el layout UV de la prenda: x = u * tamaño, y = v * tamaño (v = 0 arriba).
 
@@ -48,8 +49,8 @@ export function drawDesign(
   drawGraphic(ctx, design.graphic, garment);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-  // Capas (escudo, imágenes, textos), recortadas a su pieza.
-  drawLayers(ctx, design.layers, garment);
+  // Capas (escudo, imágenes, textos) y encima el nombre y número de muestra, recortados a su pieza.
+  drawLayers(ctx, [...design.layers, ...nameNumberLayers(design.nameNumber)], garment);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 
   if (overlay.guides) drawGuides(ctx, design, garment, size, overlay.labelFont);

@@ -1126,7 +1126,7 @@ input {
     .font-chip:not([aria-pressed="true"]):hover {
       border-color: var(--color-ink-3);
     }
-    .layer-row-main:hover,
+    .layer-row-main:not(:disabled):hover,
     .icon-btn:hover {
       background: var(--color-bone-2);
     }

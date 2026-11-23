@@ -6,10 +6,6 @@ const PENDING: Partial<Record<SectionId, { what: string; items: string[] }>> = {
     what: "Camisetas de arranque para no empezar de cero.",
     items: ["Plantillas originales colgadas en percha", "Cambian colores y gráfico, y respetan tus capas"],
   },
-  names: {
-    what: "El dorsal del equipo.",
-    items: ["Nombre y número de muestra", "Tipografía, color y borde en cm"],
-  },
 };
 
 export function PendingSection({ id, stage }: { id: SectionId; stage: number }) {

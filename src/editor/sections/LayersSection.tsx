@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { GarmentConfig, PieceId } from "@/garments/garment.config";
 import type { ImageLayer, Layer, TextLayer } from "@/design/types";
 import { MAX_LAYERS, MAX_TEXT_LENGTH, newLayerId, useDesignStore } from "@/design/store";
 import { ACCEPTED_TYPES, imageForLayer, saveUpload, UploadError, useAssets, type AssetMeta } from "@/design/assets";
-import { colorLabel, relativeLuminance } from "@/palette/colorMath";
-import { DEFAULT_FONT, ensureFont, fontFamily, textFonts, textFontsById } from "@/layers/fonts";
+import { relativeLuminance } from "@/palette/colorMath";
+import { DEFAULT_FONT, fontFamily, textFontsById } from "@/layers/fonts";
 import { displayText, layerSizeCm } from "@/layers/geometry";
 import { useEditorUi } from "@/editor/uiStore";
-import { ColorPicker, Swatch, usedDesignColors } from "@/editor/ColorPicker";
+import { ColorRow, FontGrid, fmt, Range, Stepper } from "@/editor/controls";
+import { ColorPicker, usedDesignColors } from "@/editor/ColorPicker";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -18,8 +19,6 @@ import {
   CopyIcon,
   EyeIcon,
   EyeOffIcon,
-  MinusIcon,
-  PlusIcon,
   TextIcon,
   TrashIcon,
   UploadIcon,
@@ -27,7 +26,6 @@ import {
 
 /** Debajo de esto (px del original por cm impreso, ~100 dpi) avisamos que puede salir pixelado. */
 const MIN_PX_PER_CM = 40;
-const fmt = (n: number, d = 1) => n.toLocaleString("es-AR", { maximumFractionDigits: d });
 const round1 = (v: number) => Math.round(v * 10) / 10;
 const floor1 = (v: number) => Math.floor(v * 10) / 10;
 
@@ -546,7 +544,6 @@ function TextSettings({ layer }: { layer: TextLayer }) {
   const inputId = useId();
   const [draft, setDraft] = useState(layer.text);
   useEffect(() => setDraft(layer.text), [layer.text]);
-  useEffect(() => textFonts.forEach(ensureFont), []);
 
   return (
     <>
@@ -575,16 +572,7 @@ function TextSettings({ layer }: { layer: TextLayer }) {
         <h4 id="t-font" className="family-label">
           Tipografía
         </h4>
-        <div className="font-grid">
-          {textFonts.map((f) => (
-            <button key={f.id} type="button" className="font-chip" aria-pressed={layer.fontId === f.id} onClick={() => updateLayer(layer.id, { fontId: f.id })}>
-              <span style={{ fontFamily: fontFamily(f), fontWeight: f.weight }} className="font-chip-sample" aria-hidden="true">
-                {f.uppercase ? "ABC 10" : "Abc 10"}
-              </span>
-              <span className="font-chip-name">{f.label}</span>
-            </button>
-          ))}
-        </div>
+        <FontGrid value={layer.fontId} onSelect={(id) => updateLayer(layer.id, { fontId: id })} />
       </section>
 
       <section aria-labelledby="t-colors" className="space-y-3">
@@ -615,20 +603,6 @@ function TextSettings({ layer }: { layer: TextLayer }) {
   );
 }
 
-function ColorRow({ label, hex, name, onClick }: { label: string; hex: string; name?: string; onClick: () => void }) {
-  return (
-    <button type="button" className="zone-row" onClick={onClick}>
-      <Swatch hex={hex} />
-      <span className="min-w-0 flex-1 text-left">
-        <span className="block text-[0.8125rem] font-semibold text-ink-2">{label}</span>
-        <span className="block truncate text-[0.9375rem] text-ink">{name ?? colorLabel(hex).split(",")[0]}</span>
-      </span>
-      <span className="hex">{hex}</span>
-      <ChevronRightIcon className="shrink-0 text-ink-3" />
-    </button>
-  );
-}
-
 function LayerColor({ garment, layer, target }: { garment: GarmentConfig; layer: Layer; target: "fill" | "outline" | "bg" }) {
   const colors = useDesignStore((s) => s.design.colors);
   const channels = useDesignStore((s) => s.design.graphic?.channels);
@@ -650,110 +624,5 @@ function LayerColor({ garment, layer, target }: { garment: GarmentConfig; layer:
         else updateLayer(layer.id, { color: hex });
       }}
     />
-  );
-}
-
-// ---------- controles numéricos ----------
-
-/** Número con − / + (paso 0,5) y campo editable. Acepta coma decimal. */
-function Stepper({
-  label,
-  value,
-  unit,
-  onChange,
-  step = 0.5,
-  min,
-  max,
-  decimals = 1,
-}: {
-  label: string;
-  value: number;
-  unit: string;
-  onChange: (v: number) => void;
-  step?: number;
-  min: number;
-  max: number;
-  decimals?: number;
-}) {
-  const id = useId();
-  const [text, setText] = useState(fmt(value, decimals));
-  useEffect(() => setText(fmt(value, decimals)), [value, decimals]);
-  const clampRound = (v: number) => Math.min(max, Math.max(min, Math.round(v * 10 ** decimals) / 10 ** decimals));
-  const commitText = () => {
-    const v = Number(text.replace(",", "."));
-    if (Number.isFinite(v)) onChange(clampRound(v));
-    else setText(fmt(value, decimals));
-  };
-  return (
-    <div className="field">
-      <label htmlFor={id} className="field-label">
-        {label}
-      </label>
-      <div className="stepper">
-        <button type="button" className="stepper-btn" aria-label={`Restar ${fmt(step)} ${unit} a ${label}`} onClick={() => onChange(clampRound(value - step))}>
-          <MinusIcon />
-        </button>
-        <span className="stepper-value">
-          <input
-            id={id}
-            inputMode="decimal"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onBlur={commitText}
-            onKeyDown={(e) => e.key === "Enter" && commitText()}
-          />
-          <span aria-hidden="true">{unit}</span>
-        </span>
-        <button type="button" className="stepper-btn" aria-label={`Sumar ${fmt(step)} ${unit} a ${label}`} onClick={() => onChange(clampRound(value + step))}>
-          <PlusIcon />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Range({
-  id,
-  label,
-  value,
-  min,
-  max,
-  step,
-  format,
-  onLive,
-  onCommit,
-}: {
-  id: string;
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  format: (v: number) => string;
-  onLive: (v: number) => void;
-  onCommit: () => void;
-}): ReactNode {
-  return (
-    <div className="field">
-      <label htmlFor={id} className="field-label">
-        {label}
-        <span className="field-value">{format(value)}</span>
-      </label>
-      <input
-        id={id}
-        type="range"
-        className="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        aria-valuetext={format(value)}
-        onChange={(e) => onLive(Number(e.target.value))}
-        onPointerUp={onCommit}
-        onKeyUp={onCommit}
-        onBlur={onCommit}
-        onTouchEnd={onCommit}
-      />
-    </div>
   );
 }

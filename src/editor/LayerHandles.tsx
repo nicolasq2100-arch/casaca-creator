@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { useDesignStore } from "@/design/store";
-import { useEditorUi } from "./uiStore";
 import { layerBridge, layerToScreen } from "./layerBridge";
+import { currentEditTarget, useHasEditSelection } from "./editTargets";
 
 const MIN_SIZE = 1;
 const MAX_SIZE = 60;
@@ -28,7 +28,7 @@ function safeTop(root: HTMLElement) {
  * Para mover se arrastra la capa misma sobre la camiseta (LayerManipulator).
  */
 export function LayerHandles() {
-  const active = useEditorUi((s) => s.activeSection === "layers" && s.layersView.mode === "layer");
+  const active = useHasEditSelection();
   const outline = useRef<SVGPolygonElement>(null);
   const stem = useRef<SVGLineElement>(null);
   const scaleH = useRef<HTMLButtonElement>(null);
@@ -67,6 +67,9 @@ export function LayerHandles() {
         topMid = layerToScreen(g, 0, g.halfH);
         rot = out(topMid);
       }
+      if (rotateH.current) rotateH.current.hidden = !g.canRotate;
+      if (stem.current) stem.current.style.display = g.canRotate ? "" : "none";
+      if (!g.canRotate) rot = [g.cx, Math.max(...corners.map((p) => p[1]))];
       stem.current?.setAttribute("x1", String(topMid[0]));
       stem.current?.setAttribute("y1", String(topMid[1]));
       stem.current?.setAttribute("x2", String(rot[0]));
@@ -81,7 +84,7 @@ export function LayerHandles() {
       if (label.current) {
         const bottom = Math.max(...corners.map((p) => p[1]));
         label.current.style.transform = `translate(${g.cx}px, ${Math.max(bottom, sc[1], rot[1]) + 32}px)`;
-        label.current.textContent = `${fmt(g.halfW * 2)} × ${fmt(g.halfH * 2)} cm`;
+        label.current.textContent = `${fmt(g.labelW)} × ${fmt(g.labelH)} cm`;
       }
     };
     layerBridge.listeners.add(draw);
@@ -93,16 +96,16 @@ export function LayerHandles() {
 
   if (!active) return null;
 
-  const layerId = () => {
-    const v = useEditorUi.getState().layersView;
-    return v.mode === "layer" ? v.id : null;
+  const selected = () => {
+    const t = currentEditTarget();
+    const layer = t?.selectedId ? t.layers.find((l) => l.id === t.selectedId) : undefined;
+    return t && layer ? { t, layer } : null;
   };
 
   /** Gesto sobre un asa: captura el puntero, actualiza en vivo y guarda un paso al soltar. */
   const gesture = (e: ReactPointerEvent<HTMLButtonElement>, onMove: (dx: number, dy: number, start: { x: number; y: number }) => void) => {
-    const id = layerId();
     const g = layerBridge.geometry;
-    if (!id || !g) return;
+    if (!selected() || !g) return;
     e.preventDefault();
     e.stopPropagation();
     const target = e.currentTarget;
@@ -128,27 +131,27 @@ export function LayerHandles() {
   };
 
   const onScale = (e: ReactPointerEvent<HTMLButtonElement>) => {
-    const id = layerId();
-    const layer = useDesignStore.getState().design.layers.find((l) => l.id === id);
-    if (!layer) return;
+    const sel = selected();
+    if (!sel) return;
+    const { t, layer } = sel;
     const startSize = layer.sizeCm;
     gesture(e, (x, y, start) => {
       const ratio = Math.hypot(x, y) / (Math.hypot(start.x, start.y) || 1);
       const sizeCm = Math.min(MAX_SIZE, Math.max(MIN_SIZE, Math.round(startSize * ratio * 10) / 10));
-      useDesignStore.getState().updateLayer(layer.id, { sizeCm }, "live");
+      t.update(layer.id, { sizeCm }, "live");
     });
   };
 
   const onRotate = (e: ReactPointerEvent<HTMLButtonElement>) => {
-    const id = layerId();
-    const layer = useDesignStore.getState().design.layers.find((l) => l.id === id);
-    if (!layer) return;
+    const sel = selected();
+    if (!sel) return;
+    const { t, layer } = sel;
     const startRot = layer.rotationDeg;
     gesture(e, (x, y, start) => {
       const delta = ((Math.atan2(y, x) - Math.atan2(start.y, start.x)) * 180) / Math.PI;
       let r = ((((startRot + delta) % 360) + 540) % 360) - 180; // -180..180
       for (const snap of [-180, -90, 0, 90, 180]) if (Math.abs(r - snap) <= SNAP_DEG) r = snap;
-      useDesignStore.getState().updateLayer(layer.id, { rotationDeg: Math.round(r) }, "live");
+      t.update(layer.id, { rotationDeg: Math.round(r) }, "live");
     });
   };
 

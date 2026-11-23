@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { sanitizeDesign, useDesignStore } from "./store";
+import { pruneAssets } from "./assets";
 
 // Borrador local: el diseño se guarda solo en este dispositivo, sin cuenta.
 // Se reemplaza por "Guardar diseño" (Supabase) más adelante; el borrador sigue sirviendo de respaldo.
@@ -35,6 +36,9 @@ export function useLocalDraft(): DraftStatus {
     const draft = readDraft();
     useDesignStore.getState().hydrate(draft?.design ?? null);
     if (draft) setStatus({ state: "saved", at: draft.savedAt });
+    // Limpia del dispositivo las imágenes que el borrador ya no usa (capas borradas en sesiones anteriores).
+    const keep = new Set((draft?.design.layers ?? []).flatMap((l) => (l.kind === "image" ? [l.assetId] : [])));
+    void pruneAssets(keep);
     let timer: ReturnType<typeof setTimeout> | undefined;
     const unsubscribe = useDesignStore.subscribe((s, prev) => {
       if (s.design === prev.design || !s.hydrated) return;

@@ -11,6 +11,9 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 import { applyFabricShader, type FabricShader } from "@/three/fabricShader";
 import { drawDesign, TEXTURE_SIZE } from "@/three/designCanvas";
 import { useSceneDiag } from "./diagnostics";
+import { ensureAssets, useAssets } from "@/design/assets";
+import { useFontsVersion } from "@/layers/fonts";
+import { LayerManipulator } from "./LayerManipulator";
 
 const TINT_MS = 260;
 /**
@@ -55,6 +58,9 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
   const design = useDesignStore((s) => s.design);
   const lastChange = useDesignStore((s) => s.lastChange);
   const guides = useEditorUi((s) => s.guides);
+  // Imágenes y tipografías que terminan de cargar después: redibujan sin ser un cambio del diseño.
+  const assetsVersion = useAssets((s) => s.version);
+  const fontsVersion = useFontsVersion((s) => s.version);
   const highlight = useEditorUi((s) => s.highlight);
   const [highlightZone, setHighlightZone] = useState<string | null>(null);
 
@@ -157,7 +163,13 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
     });
     return () => cancelAnimationFrame(frame);
     // lastChange se lee a propósito sin ser dependencia: el teñido acompaña al cambio de diseño.
-  }, [design, guides, highlightZone, surfaces, materials, garment, invalidate]);
+  }, [design, guides, highlightZone, surfaces, materials, garment, invalidate, assetsVersion, fontsVersion]);
+
+  // Trae a memoria las imágenes de las capas (desde IndexedDB) cuando el diseño las usa.
+  useEffect(() => {
+    const ids = design.layers.flatMap((l) => (l.kind === "image" ? [l.assetId] : []));
+    if (ids.length) void ensureAssets(ids);
+  }, [design.layers]);
 
   useEffect(() => {
     // Cara interior: la misma textura del diseño, oscurecida. Cada pieza muestra su propio color por dentro
@@ -183,5 +195,10 @@ export function Garment({ garment }: { garment: GarmentConfig }) {
     if (t >= 1) tint.current = null;
   });
 
-  return <primitive object={scene} />;
+  return (
+    <>
+      <primitive object={scene} />
+      <LayerManipulator garment={garment} root={scene} />
+    </>
+  );
 }

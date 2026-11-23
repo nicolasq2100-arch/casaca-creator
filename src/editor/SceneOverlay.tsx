@@ -6,6 +6,7 @@ import { useDesignStore } from "@/design/store";
 import type { DraftStatus } from "@/design/draft";
 import { useEditorUi, type CameraView } from "./uiStore";
 import { RedoIcon, RulerIcon, UndoIcon } from "./icons";
+import { LayerHandles } from "./LayerHandles";
 
 const VIEWS: { id: CameraView; label: string }[] = [
   { id: "front", label: "Frente" },
@@ -130,6 +131,7 @@ export function SceneOverlay({ draft, desktop }: { draft: DraftStatus; desktop: 
   return (
     <>
       <LoadingProgress />
+      <LayerHandles />
       {!desktop && (
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2">
           <div className="pointer-events-auto">

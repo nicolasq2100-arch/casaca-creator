@@ -33,6 +33,7 @@ function CompactSummary({ garment }: { garment: GarmentConfig }) {
   const colors = useDesignStore((s) => s.design.colors);
   const graphicId = useDesignStore((s) => s.design.graphic?.id);
   const graphicName = graphicId ? patternsById[graphicId]?.name : undefined;
+  const layerCount = useDesignStore((s) => s.design.layers.length);
   const section = SECTIONS.find((s) => s.id === active)!;
   return (
     <div className="flex h-11 items-center gap-3 px-4 text-sm text-ink-2">
@@ -49,6 +50,8 @@ function CompactSummary({ garment }: { garment: GarmentConfig }) {
         </>
       ) : active === "graphics" ? (
         <span>{graphicName ? `Gráfico: ${graphicName}` : "Sin gráfico"}</span>
+      ) : active === "layers" ? (
+        <span>{layerCount ? `${layerCount} ${layerCount === 1 ? "capa" : "capas"}` : "Sin capas: subí tu escudo"}</span>
       ) : (
         <span>
           {section.label}: llega en la etapa {section.stage}
